@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Shotstack CaptionAsset(VTT) 기반 자막 근본 해결책. rich-text에서 CaptionAsset으로 전환, n8n에서 VTT 파일 생성 및 서버 업로드 후 Shotstack에서 참조하는 방식.",
+  "updatedAt": "2026-01-27T06:34:28.430821100Z",
+  "version": "2"
+}

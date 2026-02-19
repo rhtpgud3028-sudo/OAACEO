@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_TASK",
+  "summary":  "첫 1초부터 TTS 후킹을 위한 인트로 TTS 분리 작업. GPT 프롬프트, n8n 워크플로우, Shotstack 코드 수정 포함.",
+  "updatedAt":  "2026-01-14T01:14:37.185493300Z"
+}

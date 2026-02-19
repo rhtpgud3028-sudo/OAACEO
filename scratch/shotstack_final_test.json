@@ -1,0 +1,165 @@
+{
+    "timeline": {
+        "soundtrack": {
+            "src": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+            "effect": "fadeOut",
+            "volume": 0.5
+        },
+        "background": "#000000",
+        "tracks": [
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=1080"
+                        },
+                        "start": 0,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "zoomIn",
+                        "transition": {
+                            "out": "fade"
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "https://images.pexels.com/photos/1099680/pexels-photo-1099680.jpeg?auto=compress&cs=tinysrgb&w=1080"
+                        },
+                        "start": 5,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "zoomIn",
+                        "transition": {
+                            "in": "fade",
+                            "out": "fade"
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "https://images.pexels.com/photos/1092730/pexels-photo-1092730.jpeg?auto=compress&cs=tinysrgb&w=1080"
+                        },
+                        "start": 10,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "zoomIn",
+                        "transition": {
+                            "in": "fade"
+                        }
+                    }
+                ]
+            },
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "rich-text",
+                            "text": "건강한 식단의 비밀",
+                            "font": {
+                                "family": "Open Sans",
+                                "size": 42,
+                                "weight": "700",
+                                "color": "#ffffff"
+                            },
+                            "background": {
+                                "color": "#000000",
+                                "opacity": 0.7
+                            },
+                            "padding": {
+                                "top": 12,
+                                "right": 24,
+                                "bottom": 12,
+                                "left": 24
+                            },
+                            "align": {
+                                "horizontal": "center",
+                                "vertical": "middle"
+                            }
+                        },
+                        "start": 0,
+                        "length": 5,
+                        "fit": "none",
+                        "position": "bottom",
+                        "offset": {
+                            "y": -0.1
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "rich-text",
+                            "text": "매일 신선한 과일과 채소",
+                            "font": {
+                                "family": "Open Sans",
+                                "size": 42,
+                                "weight": "700",
+                                "color": "#ffffff"
+                            },
+                            "background": {
+                                "color": "#000000",
+                                "opacity": 0.7
+                            },
+                            "padding": {
+                                "top": 12,
+                                "right": 24,
+                                "bottom": 12,
+                                "left": 24
+                            },
+                            "align": {
+                                "horizontal": "center",
+                                "vertical": "middle"
+                            }
+                        },
+                        "start": 5,
+                        "length": 5,
+                        "fit": "none",
+                        "position": "bottom",
+                        "offset": {
+                            "y": -0.1
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "rich-text",
+                            "text": "건강하게 오래 사세요!",
+                            "font": {
+                                "family": "Open Sans",
+                                "size": 42,
+                                "weight": "700",
+                                "color": "#ffffff"
+                            },
+                            "background": {
+                                "color": "#000000",
+                                "opacity": 0.7
+                            },
+                            "padding": {
+                                "top": 12,
+                                "right": 24,
+                                "bottom": 12,
+                                "left": 24
+                            },
+                            "align": {
+                                "horizontal": "center",
+                                "vertical": "middle"
+                            }
+                        },
+                        "start": 10,
+                        "length": 5,
+                        "fit": "none",
+                        "position": "bottom",
+                        "offset": {
+                            "y": -0.1
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    "output": {
+        "format": "mp4",
+        "resolution": "hd",
+        "aspectRatio": "9:16",
+        "fps": 30
+    }
+}

@@ -1,0 +1,245 @@
+{
+    "name": "AIASF Hybrid 50sec Template",
+    "description": "AI 숏츠 팩토리 - 50초 하이브리드 포맷 템플릿",
+    "version": "1.0",
+    "template": {
+        "timeline": {
+            "soundtrack": {
+                "src": "{{TTS_AUDIO_URL}}",
+                "effect": "fadeOut",
+                "volume": 1
+            },
+            "background": "#000000",
+            "fonts": [
+                {
+                    "src": "https://autoshort.site/fonts/static/NotoSansKR-Regular.ttf"
+                }
+            ],
+            "tracks": [
+                {
+                    "clips": [
+                        {
+                            "asset": {
+                                "type": "html",
+                                "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 36px; color: white; background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 8px;\">{{SUBTITLE_TEXT}}</span></div>",
+                                "css": "body { margin: 0; padding: 0; }",
+                                "width": 1080,
+                                "height": 300
+                            },
+                            "start": 0,
+                            "length": 50,
+                            "position": "bottom",
+                            "offset": {
+                                "y": 0.02
+                            }
+                        }
+                    ]
+                },
+                {
+                    "clips": [
+                        {
+                            "asset": {
+                                "type": "video",
+                                "src": "{{INTRO_VIDEO_URL}}",
+                                "volume": 0
+                            },
+                            "start": 0,
+                            "length": 5,
+                            "fit": "cover",
+                            "transition": {
+                                "out": "fade"
+                            }
+                        },
+                        {
+                            "asset": {
+                                "type": "image",
+                                "src": "{{SLIDE_1_URL}}"
+                            },
+                            "start": 5,
+                            "length": 5,
+                            "fit": "cover",
+                            "effect": "zoomIn",
+                            "transition": {
+                                "in": "fade",
+                                "out": "fade"
+                            }
+                        },
+                        {
+                            "asset": {
+                                "type": "image",
+                                "src": "{{SLIDE_2_URL}}"
+                            },
+                            "start": 10,
+                            "length": 5,
+                            "fit": "cover",
+                            "effect": "zoomIn",
+                            "transition": {
+                                "in": "fade",
+                                "out": "fade"
+                            }
+                        },
+                        {
+                            "asset": {
+                                "type": "image",
+                                "src": "{{SLIDE_3_URL}}"
+                            },
+                            "start": 15,
+                            "length": 5,
+                            "fit": "cover",
+                            "effect": "zoomIn",
+                            "transition": {
+                                "in": "fade",
+                                "out": "fade"
+                            }
+                        },
+                        {
+                            "asset": {
+                                "type": "image",
+                                "src": "{{SLIDE_4_URL}}"
+                            },
+                            "start": 20,
+                            "length": 5,
+                            "fit": "cover",
+                            "effect": "zoomIn",
+                            "transition": {
+                                "in": "fade",
+                                "out": "fade"
+                            }
+                        },
+                        {
+                            "asset": {
+                                "type": "image",
+                                "src": "{{SLIDE_5_URL}}"
+                            },
+                            "start": 25,
+                            "length": 5,
+                            "fit": "cover",
+                            "effect": "zoomIn",
+                            "transition": {
+                                "in": "fade",
+                                "out": "fade"
+                            }
+                        },
+                        {
+                            "asset": {
+                                "type": "image",
+                                "src": "{{SLIDE_6_URL}}"
+                            },
+                            "start": 30,
+                            "length": 5,
+                            "fit": "cover",
+                            "effect": "zoomIn",
+                            "transition": {
+                                "in": "fade",
+                                "out": "fade"
+                            }
+                        },
+                        {
+                            "asset": {
+                                "type": "image",
+                                "src": "{{SLIDE_7_URL}}"
+                            },
+                            "start": 35,
+                            "length": 5,
+                            "fit": "cover",
+                            "effect": "zoomIn",
+                            "transition": {
+                                "in": "fade",
+                                "out": "fade"
+                            }
+                        },
+                        {
+                            "asset": {
+                                "type": "image",
+                                "src": "{{SLIDE_8_URL}}"
+                            },
+                            "start": 40,
+                            "length": 5,
+                            "fit": "cover",
+                            "effect": "zoomIn",
+                            "transition": {
+                                "in": "fade",
+                                "out": "fade"
+                            }
+                        },
+                        {
+                            "asset": {
+                                "type": "video",
+                                "src": "{{OUTRO_VIDEO_URL}}",
+                                "volume": 0
+                            },
+                            "start": 45,
+                            "length": 5,
+                            "fit": "cover",
+                            "transition": {
+                                "in": "fade"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "output": {
+            "format": "mp4",
+            "resolution": "hd",
+            "aspectRatio": "9:16",
+            "fps": 30
+        },
+        "merge": [
+            {
+                "find": "INTRO_VIDEO_URL",
+                "replace": ""
+            },
+            {
+                "find": "SLIDE_1_URL",
+                "replace": ""
+            },
+            {
+                "find": "SLIDE_2_URL",
+                "replace": ""
+            },
+            {
+                "find": "SLIDE_3_URL",
+                "replace": ""
+            },
+            {
+                "find": "SLIDE_4_URL",
+                "replace": ""
+            },
+            {
+                "find": "SLIDE_5_URL",
+                "replace": ""
+            },
+            {
+                "find": "SLIDE_6_URL",
+                "replace": ""
+            },
+            {
+                "find": "SLIDE_7_URL",
+                "replace": ""
+            },
+            {
+                "find": "SLIDE_8_URL",
+                "replace": ""
+            },
+            {
+                "find": "OUTRO_VIDEO_URL",
+                "replace": ""
+            },
+            {
+                "find": "TTS_AUDIO_URL",
+                "replace": ""
+            },
+            {
+                "find": "SUBTITLE_TEXT",
+                "replace": ""
+            }
+        ]
+    },
+    "usage_notes": {
+        "merge_fields": "n8n에서 merge 배열의 replace 값에 동적 데이터 삽입",
+        "audio": "Typecast TTS URL → TTS_AUDIO_URL",
+        "images": "DALL-E 3 URLs → SLIDE_1~8_URL",
+        "videos": "Kling/Luma AI URLs → INTRO/OUTRO_VIDEO_URL"
+    }
+}

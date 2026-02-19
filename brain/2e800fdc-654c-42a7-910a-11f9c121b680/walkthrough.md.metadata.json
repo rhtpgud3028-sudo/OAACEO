@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "AIASF Phase 1 완료 워크스루. 2026-01-20 작업 내용 정리: Parse Prompts 주석 제거 문제 해결, FFmpeg 볼륨 증폭 출력 형식 문제 해결, 인트로 TTS 문제 해결. 수정된 파일 목록과 현재 워크플로우 구조, Phase 2 목표 정리.",
+  "updatedAt": "2026-01-20T05:53:56.971088400Z"
+}

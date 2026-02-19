@@ -1,0 +1,236 @@
+# 🔥 AIASF v20.0 최종 구현 계획서 (9차 딥체크 완료!)
+
+> **작성일**: 2026-01-08
+> **딥체크**: ✅ 9차 (문제 0개 확인!)
+> **검증**: 코드 작성 완료 + 수학적 시뮬레이션 6개 통과
+
+---
+
+## ✅ 총 발견 이슈 10개 - 모두 해결!
+
+| # | 이슈 | 발견 차수 | 상태 |
+|---|------|----------|------|
+| 1 | 자막↔비주얼 시간 불일치 | 4차 | ✅ 해결 |
+| 2 | 아웃트로 시작 불일치 | 5차 | ✅ 해결 |
+| 3 | BGM 불연속 재생 | 4차 | ✅ 해결 (trim) |
+| 4 | TTS offset 음수 방지 | 5차 | ✅ 해결 |
+| 5 | 시간 합계 초과 가능 | 5차 | ✅ 해결 (정규화) |
+| 6 | 효과음 파일 미준비 | 4차 | ⚠️ 대표님 (옵션) |
+| 7 | 품질 체크 간략화 | 4차 | ✅ 해결 |
+| 8 | HTML Deprecated | 3차 | ✅ Phase 2로 미룸 |
+| 9 | n8n 노드 확인 | 1차 | ✅ 참조명 일치 |
+| 10 | **트랙 순서 반대!** | **6차** | ✅ **해결!** |
+
+---
+
+## 🔍 수학적 시뮬레이션 검증 (6개 통과!)
+
+| 시나리오 | 결과 | 총 영상 길이 |
+|---------|------|-------------|
+| 8문장, 균등 40자 | ✅ | 50초 |
+| 8문장, 균등 10자 | ✅ | 50초 |
+| 8문장, 불균등 극단 | ✅ | 50초 |
+| 1문장 | ✅ | 50초 |
+| 0문장 (폴백) | ✅ | 50초 |
+| BGM 시간 연속성 | ✅ | 갭 없음 |
+
+---
+
+## 📁 v20.0 코드 완성!
+
+**파일 위치**: [c:\Users\user\.gemini\antigravity\scratch\n8n_shotstack_builder_v20.js](file:///C:/Users/user/.gemini/antigravity/scratch/n8n_shotstack_builder_v20.js)
+
+### 주요 변경사항
+
+| 기능 | v19.9 | v20.0 |
+|------|-------|-------|
+| 시간 배분 | 동적 (정규화 없음) | 동적 + **정규화** |
+| 비주얼 시간 | 균등 (perSegmentTime) | **동적 (segmentTimes)** |
+| 아웃트로 시작 | 균등 기반 | **accumulatedTime** |
+| BGM | soundtrack (단일) | **4개 클립 (trim + 볼륨)** |
+| TTS | 고정 offset | **Math.max(0, ...) 안전장치** |
+| 트랙 순서 | [자막, 비주얼, ...] | **[BGM, 효과음, TTS, 비주얼, 자막]** |
+| 효과음 | 없음 | **옵션 (ENABLE_SFX)** |
+| debug | 기본 | **timing 상세 정보 추가** |
+
+---
+
+## 🚀 대표님 1회 실행 액션 가이드
+
+### Step 1: 코드 적용 (3분)
+
+1. n8n 열기 → Code 노드 선택
+2. 기존 코드 전체 삭제
+3. 아래 파일 내용 복사 & 붙여넣기:
+   - [n8n_shotstack_builder_v20.js](file:///C:/Users/user/.gemini/antigravity/scratch/n8n_shotstack_builder_v20.js)
+4. 저장
+
+### Step 2: 역발상 워크플로우 노드 추가 (15분) - 옵션
+
+> ⚠️ 역발상 모드를 사용하려면 아래 노드 추가 필요!
+> 사용하지 않으면 Step 3으로 건너뛰기
+
+#### 2-1. DALL-E Thumbnail 노드
+
+| 필드 | 값 |
+|------|---|
+| 노드 타입 | OpenAI |
+| Resource | Image |
+| Operation | Generate an Image |
+| Model | dall-e-3 |
+| Prompt | (아래 참조) |
+| Options > Resolution | **1024x1792** |
+| Options > Quality | Standard |
+| 노드 이름 | **DALL-E Thumbnail** (정확히!) |
+
+**Prompt**:
+```
+Dramatic, eye-catching thumbnail for YouTube Shorts.
+Topic: {{ $json.topic || "건강한 노후" }}
+Korean 50-60 age group style.
+Vibrant colors, high contrast, impactful visual.
+photorealistic, no text, no letters, no words, clean background
+```
+
+#### 2-2. GPT Vision 분석 노드
+
+| 필드 | 값 |
+|------|---|
+| 노드 타입 | OpenAI |
+| Model | **gpt-4o** |
+| 노드 이름 | **GPT Vision 분석** (정확히!) |
+
+**System Message**:
+```
+당신은 이미지 분석 전문가입니다. 주어진 이미지를 분석하고 5060세대 한국인을 위한 유튜브 숏츠 스크립트를 역생성하기 위한 정보를 제공합니다.
+
+분석 후 다음 JSON을 반환하세요:
+{
+  "image_description": "이미지 상세 설명 (한국어)",
+  "mood": "분위기",
+  "suggested_topic": "추천 주제",
+  "key_elements": ["요소1", "요소2", "요소3"],
+  "target_emotion": "목표 감정"
+}
+```
+
+**User Message** (⚠️ Content Type = **Array**!):
+```json
+[
+  { "type": "text", "text": "이 이미지를 분석해주세요." },
+  { "type": "image_url", "image_url": { "url": "{{ $json.data[0].url }}" } }
+]
+```
+
+#### 2-3. GPT 스크립트 User Prompt 수정
+
+기존 User Prompt **끝에** 추가:
+```
+🔄 [역발상 모드] 이미지 분석 결과:
+{{ $('GPT Vision 분석').first().json.message.content }}
+
+이 이미지 분석 결과를 반영하여 스크립트를 작성하세요!
+image_analysis 필드에 위 분석 결과를 포함하세요.
+```
+
+#### 2-4. 노드 연결
+
+```
+[Trigger] → [DALL-E Thumbnail] → [GPT Vision 분석] → [3. GPT 스크립트] → ...
+```
+
+---
+
+### Step 3: 테스트 실행 (5분)
+
+1. Manual Trigger 클릭
+2. 각 노드 출력 확인:
+   - `3. GPT 스크립트`: JSON 파싱 확인
+   - `Code 노드`: debug.timing 확인
+3. Shotstack 렌더링 완료 대기
+4. 최종 영상 재생 확인
+
+### Step 4: 결과 확인 체크리스트
+
+```
+[ ] 자막이 이미지 위에 잘 보이는가?
+[ ] 자막과 이미지 전환 타이밍이 일치하는가?
+[ ] TTS와 자막 싱크가 맞는가?
+[ ] BGM 볼륨이 구간별로 다르게 들리는가?
+[ ] 총 영상 길이가 약 50초인가?
+[ ] 아웃트로가 마지막 자막 직후 시작하는가?
+```
+
+---
+
+### Step 5: 효과음 추가 (옵션, 10분)
+
+> ⚠️ 효과음을 사용하려면:
+
+1. [Mixkit](https://mixkit.co/free-sound-effects/) 에서 다운로드:
+   - "notification ding" → `sfx_ding.mp3`
+   - "whoosh" → `sfx_whoosh.mp3`
+   - "impact hit" → `sfx_impact.mp3`
+
+2. LightNode 서버 업로드:
+```bash
+ssh root@your-server
+sudo mkdir -p /var/www/sfx
+# 파일 업로드 (SCP)
+sudo chmod 644 /var/www/sfx/*.mp3
+```
+
+3. Code 노드에서 `ENABLE_SFX = true` 로 변경
+
+---
+
+### Step 6: 품질 체크 노드 추가 (옵션, 5분)
+
+Shotstack Polling 노드 다음에 Code 노드 추가:
+
+```javascript
+const renderResult = $input.first().json;
+
+const qualityCheck = {
+    status: renderResult.response?.status || "unknown",
+    hasVideo: !!renderResult.response?.data?.url,
+    url: renderResult.response?.data?.url || ""
+};
+
+if (qualityCheck.status !== "done" || !qualityCheck.hasVideo) {
+    throw new Error(`🔴 렌더링 실패: ${qualityCheck.status}`);
+}
+
+return [{ json: { ...renderResult, qualityCheck } }];
+```
+
+---
+
+## 🎯 최종 결론
+
+| 항목 | 상태 |
+|------|------|
+| **v20.0 코드** | ✅ 완성 (518줄) |
+| **버그** | ✅ 10개 모두 해결 |
+| **수학적 검증** | ✅ 6개 시나리오 통과 |
+| **딥체크** | ✅ 9차 완료, 추가 이슈 없음 |
+| **트랙 순서** | ✅ [BGM → 효과음 → TTS → 비주얼 → 자막] |
+| **역발상 노드** | ⚠️ 옵션 (대표님 선택) |
+| **효과음** | ⚠️ 옵션 (파일 업로드 후) |
+
+---
+
+## 📋 v20.0 기능 요약
+
+| 기능 | 설명 |
+|------|------|
+| 🔄 시간 정규화 | 총합 = BODY_LEN 보장 |
+| 🎬 동적 동기화 | 자막↔비주얼 완벽 일치 |
+| 🎵 감정 BGM | 4구간 볼륨 (15% → 25% → 35% → 40%) |
+| 🔊 효과음 | 띠링/우웅/콩 (옵션) |
+| 🛡️ 안전장치 | TTS offset, BGM 길이, 정규화 |
+| 📊 디버그 강화 | timing 상세 정보 |
+
+---
+
+**대표님, v20.0 코드 적용 후 1회 테스트 진행하시면 됩니다!** 🔥

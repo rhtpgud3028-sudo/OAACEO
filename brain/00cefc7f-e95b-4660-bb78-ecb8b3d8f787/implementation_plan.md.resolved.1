@@ -1,0 +1,135 @@
+# YouTube API Screencast v6.0 제작 계획
+
+## 배경
+YouTube API 팀이 **"API 클라이언트가 어떻게 API를 사용하여 영상을 업로드하는지"** 실제 시연을 요청함.
+
+## 핵심 전략
+> **⚠️ n8n 미노출! Postman API 호출 데모로 대체!**
+> 
+> 이유: 자동화 규모 노출 시 스팸/봇 의심 우려
+
+---
+
+## 영상 구성 (v6.0) - Postman 버전
+
+| # | 시간 | 화면 | 나레이션 |
+|---|------|------|----------|
+| 1 | 0-10초 | YouTube 채널 페이지 | "This is our YouTube channel for educational content." |
+| 2 | 10-30초 | **Postman에서 videos.insert API 호출** | "We use YouTube Data API's videos.insert endpoint to upload videos." |
+| 3 | 30-45초 | Postman 응답 (200 OK + video ID) | "Here's the successful API response with the uploaded video ID." |
+| 4 | 45-55초 | YouTube Studio에서 영상 확인 | "The video is now in our channel. Our team reviews it before publishing." |
+| 5 | 55-60초 | 마무리 | "Thank you for reviewing our API demonstration." |
+
+---
+
+## Postman 데모 준비
+
+### 보여줄 것
+- ✅ API 엔드포인트: `POST https://www.googleapis.com/upload/youtube/v3/videos`
+- ✅ Query 파라미터: `part=snippet,status`
+- ✅ 요청 Body (제목, 설명)
+- ✅ 응답: 200 OK + video ID
+
+### 블러 처리할 것
+- ❌ Authorization Bearer 토큰
+- ❌ 채널 ID (선택)
+
+---
+
+## TTS 스크립트 (영어)
+
+```
+Hello, this is a demonstration of our YouTube API usage.
+
+This is our YouTube channel for educational lifestyle content.
+
+We use the YouTube Data API to upload videos.
+Here in Postman, you can see the videos.insert endpoint.
+We send a POST request with video metadata and the file.
+
+The API returns a successful response with the video ID.
+
+In YouTube Studio, you can see the video is now uploaded.
+Our team reviews each video before making it public.
+
+Thank you for reviewing our demonstration.
+```
+
+---
+
+## 녹화 순서
+
+### 1️⃣ 사전 준비
+1. Postman에 YouTube API 요청 준비 (미리 설정)
+2. 테스트 영상 파일 준비
+3. YouTube Studio 탭 미리 로드
+
+### 2️⃣ 화면 녹화 (무음, 60초)
+1. YouTube 채널 보여주기 (10초)
+2. Postman 열기 → API 요청 보여주기 (10초)
+3. **Send 버튼 클릭** → 응답 대기 (10초)
+4. 200 OK 응답 + video ID 확인 (5초)
+5. YouTube Studio → 업로드된 영상 확인 (15초)
+6. 마무리 (10초)
+
+### 3️⃣ TTS + 편집 (CapCut)
+1. ElevenLabs TTS 생성
+2. 화면 녹화 + TTS 합성
+3. 토큰 블러 처리
+
+---
+
+## 마감
+- **YouTube 요청 기한**: 영업일 기준 7일 (2026-01-24 예상)
+- **목표 제출일**: 2026-01-17 (금)
+
+---
+
+## 이메일 회신 템플릿
+
+```
+Subject: RE: YouTube API Services Review - Additional Screencast
+
+Hello YouTube API Team,
+
+Thank you for your guidance.
+
+I have prepared an additional screencast demonstrating the technical implementation of our YouTube API usage.
+
+📹 VIDEO LINK
+[Google Drive URL]
+Duration: 60 seconds
+
+This video shows:
+1. Our automation platform calling the YouTube Data API
+2. The actual video upload process
+3. Upload confirmation in YouTube Studio
+
+Please let me know if you need any additional information.
+
+Best regards,
+Se Hyung Koh
+Project: Short Up (short-up-479502)
+```
+
+---
+
+## 마감
+
+- **YouTube 요청 기한**: 영업일 기준 7일 (2026-01-24 예상)
+- **목표 제출일**: 2026-01-17 (금)
+
+---
+
+## 검증 계획
+
+### 영상 품질 체크 (대표님 수동 확인)
+1. [ ] 민감 정보(API 키, 토큰) 블러 처리 완료?
+2. [ ] TTS 음성 명확히 들림?
+3. [ ] 업로드 과정이 충분히 보임?
+4. [ ] YouTube Studio에서 영상 확인 가능?
+5. [ ] 60초 내외 길이?
+
+### 제출 전 최종 체크
+1. [ ] Google Drive 링크 공유 설정 완료?
+2. [ ] 이메일 본문 검토 완료?

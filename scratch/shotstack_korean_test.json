@@ -1,0 +1,107 @@
+{
+    "timeline": {
+        "soundtrack": {
+            "src": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+            "effect": "fadeOut",
+            "volume": 0.5
+        },
+        "background": "#000000",
+        "fonts": [
+            {
+                "src": "https://fonts.gstatic.com/s/notosanskr/v36/PbyxFmXiEBPT4ITbgNA5Cgms3VYcOA-vvnIzzuozeLTq8H4hfeE.ttf"
+            }
+        ],
+        "tracks": [
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=1080"
+                        },
+                        "start": 0,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "zoomIn",
+                        "transition": {
+                            "out": "fade"
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "https://images.pexels.com/photos/1099680/pexels-photo-1099680.jpeg?auto=compress&cs=tinysrgb&w=1080"
+                        },
+                        "start": 5,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "zoomIn",
+                        "transition": {
+                            "in": "fade",
+                            "out": "fade"
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "https://images.pexels.com/photos/1092730/pexels-photo-1092730.jpeg?auto=compress&cs=tinysrgb&w=1080"
+                        },
+                        "start": 10,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "zoomIn",
+                        "transition": {
+                            "in": "fade"
+                        }
+                    }
+                ]
+            },
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "title",
+                            "text": "건강한 식단의 비밀",
+                            "style": "subtitle",
+                            "size": "medium",
+                            "color": "#ffffff",
+                            "position": "bottom"
+                        },
+                        "start": 0,
+                        "length": 5
+                    },
+                    {
+                        "asset": {
+                            "type": "title",
+                            "text": "매일 신선한 과일과 채소",
+                            "style": "subtitle",
+                            "size": "medium",
+                            "color": "#ffffff",
+                            "position": "bottom"
+                        },
+                        "start": 5,
+                        "length": 5
+                    },
+                    {
+                        "asset": {
+                            "type": "title",
+                            "text": "건강하게 오래 사세요!",
+                            "style": "subtitle",
+                            "size": "medium",
+                            "color": "#ffffff",
+                            "position": "bottom"
+                        },
+                        "start": 10,
+                        "length": 5
+                    }
+                ]
+            }
+        ]
+    },
+    "output": {
+        "format": "mp4",
+        "resolution": "hd",
+        "aspectRatio": "9:16",
+        "fps": 30
+    }
+}

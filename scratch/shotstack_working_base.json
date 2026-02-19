@@ -1,0 +1,63 @@
+{
+    "_comment": "이 템플릿은 2025-12-22 기준 작동하는 버전입니다. 이미지 위 자막 표시 OK, 폰트만 교체 필요",
+    "_issue": "한글 폰트가 ???로 표시됨 - 올바른 폰트 URL과 font-family 이름 필요",
+    "_working_features": [
+        "트랙 순서: Track 0 = 텍스트 (위), Track 1 = 이미지 (아래)",
+        "HTML 타입 + 인라인 스타일로 컴팩트 자막 박스",
+        "이미지 위에 자막 오버레이 성공"
+    ],
+    "timeline": {
+        "soundtrack": {
+            "src": "{{TTS_AUDIO_URL}}",
+            "effect": "fadeOut",
+            "volume": 1
+        },
+        "background": "#000000",
+        "fonts": [
+            {
+                "src": "{{KOREAN_FONT_URL}}"
+            }
+        ],
+        "tracks": [
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: '{{FONT_FAMILY}}', sans-serif; font-size: 36px; color: white; background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 8px;\">{{SUBTITLE_1}}</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 300
+                        },
+                        "start": 0,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.02
+                        }
+                    }
+                ]
+            },
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "{{SLIDE_1_URL}}"
+                        },
+                        "start": 0,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "zoomIn"
+                    }
+                ]
+            }
+        ]
+    },
+    "output": {
+        "format": "mp4",
+        "resolution": "hd",
+        "aspectRatio": "9:16",
+        "fps": 30
+    }
+}

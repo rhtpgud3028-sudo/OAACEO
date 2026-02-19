@@ -1,0 +1,304 @@
+{
+    "_meta": {
+        "name": "AIASF 50초 숏츠 기본 템플릿",
+        "version": "1.0",
+        "lastUpdated": "2025-12-23",
+        "format": "옵션 1: AI인트로(5초) + 이미지(40초) + AI아웃트로(5초)",
+        "target": "5060세대 (50-60대 한국인)",
+        "optimization": {
+            "인트로": "이 음식 드시면 혈당이... 같은 궁금증 유발 AI영상",
+            "이미지": "큰 글씨(50px+), 단순 배경, 핵심 키워드 강조",
+            "아웃트로": "더 많은 건강 비법은 구독! + 손가락 애니메이션",
+            "TTS": "천천히, 또박또박, 신뢰감 있는 목소리"
+        }
+    },
+    "timeline": {
+        "soundtrack": {
+            "src": "{{ BGM_URL }}",
+            "effect": "fadeOut",
+            "volume": 0.3
+        },
+        "background": "#000000",
+        "fonts": [
+            {
+                "src": "https://autoshort.site/fonts/static/NotoSansKR-Regular.ttf"
+            }
+        ],
+        "tracks": [
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "audio",
+                            "src": "{{ TTS_AUDIO_URL }}"
+                        },
+                        "start": 0,
+                        "length": 50
+                    }
+                ]
+            },
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 50px; font-weight: bold; color: white; background: rgba(0,0,0,0.8); padding: 15px 30px; border-radius: 12px; max-width: 85%; text-align: center; line-height: 1.4;\">{{ SUBTITLE_1 }}</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 400
+                        },
+                        "start": 0,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.05
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 50px; font-weight: bold; color: white; background: rgba(0,0,0,0.8); padding: 15px 30px; border-radius: 12px; max-width: 85%; text-align: center; line-height: 1.4;\">{{ SUBTITLE_2 }}</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 400
+                        },
+                        "start": 5,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.05
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 50px; font-weight: bold; color: white; background: rgba(0,0,0,0.8); padding: 15px 30px; border-radius: 12px; max-width: 85%; text-align: center; line-height: 1.4;\">{{ SUBTITLE_3 }}</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 400
+                        },
+                        "start": 10,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.05
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 50px; font-weight: bold; color: white; background: rgba(0,0,0,0.8); padding: 15px 30px; border-radius: 12px; max-width: 85%; text-align: center; line-height: 1.4;\">{{ SUBTITLE_4 }}</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 400
+                        },
+                        "start": 15,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.05
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 50px; font-weight: bold; color: white; background: rgba(0,0,0,0.8); padding: 15px 30px; border-radius: 12px; max-width: 85%; text-align: center; line-height: 1.4;\">{{ SUBTITLE_5 }}</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 400
+                        },
+                        "start": 20,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.05
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 50px; font-weight: bold; color: white; background: rgba(0,0,0,0.8); padding: 15px 30px; border-radius: 12px; max-width: 85%; text-align: center; line-height: 1.4;\">{{ SUBTITLE_6 }}</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 400
+                        },
+                        "start": 25,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.05
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 50px; font-weight: bold; color: white; background: rgba(0,0,0,0.8); padding: 15px 30px; border-radius: 12px; max-width: 85%; text-align: center; line-height: 1.4;\">{{ SUBTITLE_7 }}</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 400
+                        },
+                        "start": 30,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.05
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 50px; font-weight: bold; color: white; background: rgba(0,0,0,0.8); padding: 15px 30px; border-radius: 12px; max-width: 85%; text-align: center; line-height: 1.4;\">{{ SUBTITLE_8 }}</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 400
+                        },
+                        "start": 35,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.05
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 50px; font-weight: bold; color: white; background: rgba(0,0,0,0.8); padding: 15px 30px; border-radius: 12px; max-width: 85%; text-align: center; line-height: 1.4;\">{{ SUBTITLE_9 }}</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 400
+                        },
+                        "start": 40,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.05
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 50px; font-weight: bold; color: white; background: rgba(0,0,0,0.8); padding: 15px 30px; border-radius: 12px; max-width: 85%; text-align: center; line-height: 1.4;\">{{ SUBTITLE_10 }}</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 400
+                        },
+                        "start": 45,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.05
+                        }
+                    }
+                ]
+            },
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "video",
+                            "src": "{{ INTRO_VIDEO_URL }}"
+                        },
+                        "start": 0,
+                        "length": 5,
+                        "fit": "cover"
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "{{ IMAGE_1 }}"
+                        },
+                        "start": 5,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "slideLeft"
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "{{ IMAGE_2 }}"
+                        },
+                        "start": 10,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "slideRight"
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "{{ IMAGE_3 }}"
+                        },
+                        "start": 15,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "slideLeft"
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "{{ IMAGE_4 }}"
+                        },
+                        "start": 20,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "slideRight"
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "{{ IMAGE_5 }}"
+                        },
+                        "start": 25,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "slideLeft"
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "{{ IMAGE_6 }}"
+                        },
+                        "start": 30,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "slideRight"
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "{{ IMAGE_7 }}"
+                        },
+                        "start": 35,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "slideLeft"
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "{{ IMAGE_8 }}"
+                        },
+                        "start": 40,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "slideRight"
+                    },
+                    {
+                        "asset": {
+                            "type": "video",
+                            "src": "{{ OUTRO_VIDEO_URL }}"
+                        },
+                        "start": 45,
+                        "length": 5,
+                        "fit": "cover"
+                    }
+                ]
+            }
+        ]
+    },
+    "output": {
+        "format": "mp4",
+        "resolution": "hd",
+        "aspectRatio": "9:16",
+        "fps": 30
+    }
+}

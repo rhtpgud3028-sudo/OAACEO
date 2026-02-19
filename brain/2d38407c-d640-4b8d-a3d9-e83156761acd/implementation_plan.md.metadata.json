@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "v20.33 구현 계획. 딥리서칭 결과(v19.5 코드, Shotstack 문서, ElevenLabs 음성), 딥분석(품질저하 근본원인), 딥판단(옵션C 선택), 검증 결과(3개 검증됨, 1개 추론 표시) 포함. 자막 규칙 100% 복원 + 채널별 차별화(TTS/BGM/로고/인트로) 계획.",
+  "updatedAt": "2026-02-05T04:27:58.392472100Z",
+  "version": "2"
+}

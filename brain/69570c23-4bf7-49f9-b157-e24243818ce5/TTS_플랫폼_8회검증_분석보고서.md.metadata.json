@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_OTHER",
+  "summary":  "9개 TTS 플랫폼(Typecast, ElevenLabs, Google Cloud, Amazon Polly, Naver Clova, Azure, Supertone, Play.ht, Murf AI)을 8회 검증 프로세스로 분석. 크리티컬 이슈(20채널 음성 다양성), 비용, 기술 호환성, 확장성 검토. 최종 제안: ElevenLabs Creator 플랜 (~$88/월, 연간 ₩684만원 절감).",
+  "updatedAt":  "2026-01-13T05:12:22.121441600Z"
+}

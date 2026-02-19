@@ -1,0 +1,49 @@
+{
+    "timeline": {
+        "soundtrack": {
+            "src": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+            "effect": "fadeOut",
+            "volume": 0.5
+        },
+        "background": "#000000",
+        "tracks": [
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=1080"
+                        },
+                        "start": 0,
+                        "length": 15,
+                        "fit": "cover",
+                        "effect": "zoomIn"
+                    }
+                ]
+            },
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "text",
+                            "text": "HELLO WORLD",
+                            "font": {
+                                "color": "#FF0000",
+                                "size": 72
+                            }
+                        },
+                        "start": 0,
+                        "length": 15,
+                        "position": "center"
+                    }
+                ]
+            }
+        ]
+    },
+    "output": {
+        "format": "mp4",
+        "resolution": "sd",
+        "aspectRatio": "9:16",
+        "fps": 30
+    }
+}

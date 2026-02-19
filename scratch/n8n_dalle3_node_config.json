@@ -1,0 +1,34 @@
+{
+    "name": "DALL-E 3 Generate Slide Images",
+    "type": "HTTP Request",
+    "description": "8장의 슬라이드 이미지를 DALL-E 3로 생성",
+    "method": "POST",
+    "url": "https://api.openai.com/v1/images/generations",
+    "headers": {
+        "Authorization": "Bearer {{ $credentials.openaiApi.apiKey }}",
+        "Content-Type": "application/json"
+    },
+    "body": {
+        "model": "dall-e-3",
+        "prompt": "{{ $json.image_prompt }}",
+        "n": 1,
+        "size": "1024x1792",
+        "quality": "standard",
+        "response_format": "url"
+    },
+    "notes": [
+        "DALL-E 3는 한 번에 1장만 생성 가능 (n=1 고정)",
+        "8장 생성 시 Loop 노드 필요",
+        "size: 1024x1792 = 9:16 세로 비율 (Shorts 최적)",
+        "quality: 'standard'=$0.04, 'hd'=$0.08",
+        "response_format: 'url'=1시간 유효 URL 반환"
+    ],
+    "expected_response": {
+        "created": 1700000000,
+        "data": [
+            {
+                "url": "https://oaidalleapiprodscus.blob.core.windows.net/..."
+            }
+        ]
+    }
+}

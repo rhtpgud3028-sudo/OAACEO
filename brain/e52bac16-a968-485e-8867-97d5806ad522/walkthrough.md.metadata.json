@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary":  "AIASF 워크플로우 고도화 완료 보고서. GPT 프롬프트 v6.0(5가지 후킹 유형, 감정 유발, 이모지 활용) 및 n8n Code v18.0(자막 48px, hook_type 지원, 영역 확대) 업그레이드 완료. n8n 적용 가이드 포함.",
+  "updatedAt":  "2026-01-02T06:00:03.264679400Z"
+}
