@@ -14,15 +14,27 @@
 ## 3. 오늘 작업 요약 보고
 오늘 완료한 작업, 변경사항, 미완료 항목을 간단히 보고합니다.
 
-## 4. GitHub 자동 push (데이터 영구 보존 + Google Drive 동기화)
+## 4. GitHub push → 자동 동기화
 ```bash
 cd $CLAUDE_PROJECT_DIR
 git add -A
 git commit -m "세션 마무리: $(date '+%Y-%m-%d %H:%M') - [오늘 작업 핵심 1줄 요약]"
-git push origin main
+git push -u origin HEAD
 ```
-- push 완료 후 반드시 "✅ GitHub push 완료 - 모든 기기에서 최신 데이터 사용 가능" 보고
-- push 실패 시 원인 분석 후 재시도 (최대 4회, 지수 백오프)
+
+### 자동 동기화 흐름 (push 후 자동 실행)
+```
+/wrap push (claude/XXXXX 브랜치)
+    → GitHub Action 자동 실행 (.github/workflows/auto-merge-to-main.yml)
+        → claude/XXXXX → main 자동 병합
+            → Windows auto_sync_github.ps1 (30분 주기) → main pull
+                → Google Drive 폴더 자동 동기화
+                    → 휴대용 노트북 자동 수신 ✅
+```
+
+- push 완료 후 반드시 "✅ GitHub push 완료 - GitHub Action이 자동으로 main 병합 처리" 보고
+- GitHub Action 완료까지 약 30초~2분 소요
+- push 실패 시 원인 분석 후 재시도 (최대 4회, 지수 백오프: 2s, 4s, 8s, 16s)
 
 ## 5. 다음 세션 준비사항
 미완료 항목 중 다음 세션 최우선 작업을 명시합니다.
