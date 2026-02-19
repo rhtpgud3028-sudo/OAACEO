@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "AIASF 워크플로우 고도화 구현 계획서. GPT 프롬프트 v6.0(감정 유발 중심), n8n_shotstack_builder.js v18.0(후킹 구조+앵커&브리지 리듬+키워드 하이라이트), 인트로/아웃트로 프롬프트 강화 등 구체적인 코드 변경 및 검증 계획 포함.",
+  "updatedAt":  "2026-01-02T05:49:16.924849300Z"
+}

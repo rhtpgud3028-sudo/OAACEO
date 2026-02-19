@@ -1,0 +1,67 @@
+{
+    "timeline": {
+        "background": "#000000",
+        "fonts": [
+            {
+                "src": "https://autoshort.site/fonts/static/NotoSansKR-Bold.ttf"
+            }
+        ],
+        "tracks": [
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "text",
+                            "text": "이것은 한국어 자막 테스트입니다. 긴 문장이 제대로 줄바꿈되는지 확인합니다.",
+                            "font": {
+                                "family": "Noto Sans KR",
+                                "size": 48,
+                                "color": "#ffffff",
+                                "weight": 700,
+                                "lineHeight": 1.4
+                            },
+                            "background": {
+                                "color": "#000000",
+                                "opacity": 0.85,
+                                "padding": 20,
+                                "borderRadius": 8
+                            },
+                            "alignment": {
+                                "horizontal": "center",
+                                "vertical": "center"
+                            },
+                            "width": 1000,
+                            "height": 400
+                        },
+                        "start": 0,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "x": 0,
+                            "y": -0.08
+                        }
+                    }
+                ]
+            },
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "https://images.pexels.com/photos/1563356/pexels-photo-1563356.jpeg?auto=compress&cs=tinysrgb&w=1080"
+                        },
+                        "start": 0,
+                        "length": 5,
+                        "fit": "cover"
+                    }
+                ]
+            }
+        ]
+    },
+    "output": {
+        "format": "mp4",
+        "resolution": "hd",
+        "aspectRatio": "9:16",
+        "fps": 30
+    }
+}

@@ -1,0 +1,29 @@
+# AIASF v20.1 작업 체크리스트
+
+## 완료된 작업
+- [x] 트랜지션 제거 (DISABLE_TRANSITIONS = true)
+- [x] 직관적 이미지 프롬프트 시스템 적용
+- [x] 품질 체크 노드 수정 (isProcessing)
+- [x] IF 노드 순서 변경
+- [x] GPT Vision URL 경로 수정
+- [x] n8n 백업 완료
+- [x] PM2 상태 확인
+- [x] DALL-E 이미지 서버 저장 구현
+  - [x] 서버에 upload.php 생성
+  - [x] thumbnails 폴더 생성 + 권한 설정
+  - [x] Nginx PHP 블록 추가 (SSL 443)
+  - [x] PHP 업로드 제한 10M 설정
+  - [x] n8n 썸네일 다운로드 노드 추가
+  - [x] n8n 썸네일 업로드 노드 추가
+
+## 진행 중
+- [/] 체크포인트 시스템 구현
+  - [ ] 서버에 checkpoint.php 생성
+  - [ ] checkpoints 폴더 생성 + 권한
+  - [ ] n8n Session ID 노드 추가
+  - [ ] 각 단계별 체크포인트 저장 노드 추가
+  - [ ] 조건부 실행 로직 추가
+
+## 다음 작업
+- [ ] 전체 워크플로우 테스트
+- [ ] 위키 업데이트

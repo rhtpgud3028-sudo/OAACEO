@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_OTHER",
+  "summary":  "AIASF Phase 2 스케일업 전략 보고서. 20채널 × 40개/일 운영을 위한 포괄적 분석.\n\n주요 내용:\n1. 긴급 리스크 분석 (YouTube Inauthentic 정책, API 쿼터 제한)\n2. 월간 비용 분석 (~230만원/월)\n3. 기술 인프라 체크리스트 (n8n 병렬처리, API Rate Limit)\n4. 20채널 포트폴리오 전략\n5. 즉시 실행 액션 플랜 (3주간 로드맵)\n6. 5회 딥다이브 검증 결과\n\n핵심 결론: 조건부 즉시 실행 가능 (YouTube API 쿼터 승인 대기 중)",
+  "updatedAt":  "2026-01-12T02:08:10.113189600Z"
+}

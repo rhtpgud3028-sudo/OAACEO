@@ -1,0 +1,320 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © ICT Strategy V4 - Volume Profile 자체 구현 버전
+// 핵심: VPVR 직접 계산 + IRL/ERL + 58x SL
+
+//@version=5
+strategy("ICT Strategy V4-VP", overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.percent, commission_value=0.04, slippage=1, pyramiding=0, max_boxes_count=500, max_labels_count=500)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 전략 설정
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_strategy = "═══ 전략 설정 ═══"
+leverage = input.float(58.0, "Leverage (x)", minval=1.0, maxval=125.0, step=1.0, group=grp_strategy)
+trade_direction = input.string("양방향 (Long & Short)", "트레이드 방향", options=["양방향 (Long & Short)", "롱만 (Long Only)", "숏만 (Short Only)"], group=grp_strategy)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SL 설정 (58x 레버리지 강제청산 버퍼)
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_sl = "═══ SL 설정 ═══"
+sl_price_pct = input.float(0.715, "SL % (가격 기준)", minval=0.1, maxval=5.0, step=0.01, group=grp_sl, tooltip="58x 레버리지 강제청산 마지노선 버퍼")
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Volume Profile 설정
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_vp = "═══ Volume Profile ═══"
+vp_rows = input.int(50, "가격 구간 수", minval=10, maxval=100, group=grp_vp, tooltip="볼륨 프로파일 해상도")
+vp_bars = input.int(100, "분석 봉수", minval=20, maxval=200, group=grp_vp)
+va_percent = input.float(70.0, "Value Area %", minval=50.0, maxval=90.0, group=grp_vp)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// IRL/ERL 설정
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_irl_erl = "═══ IRL/ERL 설정 ═══"
+irl_len = input.int(100, "IRL 봉수 (1H Swing)", minval=20, maxval=300, group=grp_irl_erl)
+erl_len = input.int(100, "ERL 봉수 (1D Major)", minval=20, maxval=300, group=grp_irl_erl)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 백테스팅 기간 설정
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_period = "═══ 백테스팅 기간 ═══"
+use_date_filter = input.bool(true, "기간 필터 사용", group=grp_period)
+start_date = input.time(timestamp("2024-01-01 00:00 +0000"), "시작일", group=grp_period)
+end_date = input.time(timestamp("2025-12-31 23:59 +0000"), "종료일", group=grp_period)
+
+in_date_range = use_date_filter ? (time >= start_date and time <= end_date) : true
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HTF 추세 분석 (1D)
+// ═══════════════════════════════════════════════════════════════════════════════
+[htf_h, htf_l, htf_c] = request.security(syminfo.tickerid, "D", [high, low, close])
+htf_ema = ta.ema(htf_c, 20)
+htf_trend = htf_c > htf_ema ? 1 : htf_c < htf_ema ? -1 : 0
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Volume Profile 자체 계산
+// ═══════════════════════════════════════════════════════════════════════════════
+// 분석 범위 내 최고가/최저가
+range_high = ta.highest(high, vp_bars)
+range_low = ta.lowest(low, vp_bars)
+range_size = range_high - range_low
+row_height = range_size / vp_rows
+
+// 볼륨 배열 (가격 구간별)
+var float[] buy_vol_arr = array.new_float(50, 0.0)
+var float[] sell_vol_arr = array.new_float(50, 0.0)
+var float[] total_vol_arr = array.new_float(50, 0.0)
+
+// 배열 초기화
+if barstate.isfirst
+    for i = 0 to vp_rows - 1
+        array.set(buy_vol_arr, i, 0.0)
+        array.set(sell_vol_arr, i, 0.0)
+        array.set(total_vol_arr, i, 0.0)
+
+// 현재 봉의 가격 구간 인덱스 계산
+current_row = range_size > 0 ? math.floor((close - range_low) / row_height) : 0
+current_row := math.max(0, math.min(current_row, vp_rows - 1))
+
+// 매수/매도 볼륨 분류
+is_buy_candle = close > open
+current_buy_vol = is_buy_candle ? volume : 0.0
+current_sell_vol = is_buy_candle ? 0.0 : volume
+
+// 배열 업데이트 (슬라이딩 윈도우 효과)
+if bar_index % vp_bars == 0
+    for i = 0 to vp_rows - 1
+        array.set(buy_vol_arr, i, 0.0)
+        array.set(sell_vol_arr, i, 0.0)
+        array.set(total_vol_arr, i, 0.0)
+
+// 현재 봉 볼륨 추가
+array.set(buy_vol_arr, current_row, array.get(buy_vol_arr, current_row) + current_buy_vol)
+array.set(sell_vol_arr, current_row, array.get(sell_vol_arr, current_row) + current_sell_vol)
+array.set(total_vol_arr, current_row, array.get(total_vol_arr, current_row) + volume)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// POC (Point of Control) 계산
+// ═══════════════════════════════════════════════════════════════════════════════
+var int poc_row = 0
+var float max_vol = 0.0
+
+max_vol := 0.0
+poc_row := 0
+for i = 0 to vp_rows - 1
+    vol = array.get(total_vol_arr, i)
+    if vol > max_vol
+        max_vol := vol
+        poc_row := i
+
+poc_price = range_low + (poc_row + 0.5) * row_height
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Value Area (VA) 계산 - 70% 볼륨 영역
+// ═══════════════════════════════════════════════════════════════════════════════
+total_volume = array.sum(total_vol_arr)
+va_volume_target = total_volume * va_percent / 100
+
+var int va_high_row = poc_row
+var int va_low_row = poc_row
+var float va_volume_sum = 0.0
+
+va_volume_sum := array.get(total_vol_arr, poc_row)
+va_high_row := poc_row
+va_low_row := poc_row
+
+// VA 확장
+for _ = 0 to vp_rows - 1
+    if va_volume_sum >= va_volume_target
+        break
+    
+    // 위쪽과 아래쪽 볼륨 비교
+    vol_above = va_high_row < vp_rows - 1 ? array.get(total_vol_arr, va_high_row + 1) : 0.0
+    vol_below = va_low_row > 0 ? array.get(total_vol_arr, va_low_row - 1) : 0.0
+    
+    if vol_above >= vol_below and va_high_row < vp_rows - 1
+        va_high_row += 1
+        va_volume_sum += vol_above
+    else if va_low_row > 0
+        va_low_row -= 1
+        va_volume_sum += vol_below
+    else if va_high_row < vp_rows - 1
+        va_high_row += 1
+        va_volume_sum += vol_above
+    else
+        break
+
+va_high_price = range_low + (va_high_row + 1) * row_height
+va_low_price = range_low + va_low_row * row_height
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 매수/매도 우위 전환 감지 (핵심!)
+// ═══════════════════════════════════════════════════════════════════════════════
+// 현재 가격 구간의 매수/매도 볼륨
+current_buy_dominance = array.get(buy_vol_arr, current_row) > array.get(sell_vol_arr, current_row)
+current_sell_dominance = array.get(sell_vol_arr, current_row) > array.get(buy_vol_arr, current_row)
+
+// 이전 가격 구간 (위/아래)
+above_row = math.min(current_row + 1, vp_rows - 1)
+below_row = math.max(current_row - 1, 0)
+
+above_buy_dom = array.get(buy_vol_arr, above_row) > array.get(sell_vol_arr, above_row)
+above_sell_dom = array.get(sell_vol_arr, above_row) > array.get(buy_vol_arr, above_row)
+below_buy_dom = array.get(buy_vol_arr, below_row) > array.get(sell_vol_arr, below_row)
+below_sell_dom = array.get(sell_vol_arr, below_row) > array.get(buy_vol_arr, below_row)
+
+// 전환 신호
+// 롱: 가격 하락 중, 위 구간은 매도우위, 현재 구간은 매수우위 (전환점)
+vp_long_shift = above_sell_dom and current_buy_dominance and close < poc_price
+// 숏: 가격 상승 중, 아래 구간은 매수우위, 현재 구간은 매도우위 (전환점)
+vp_short_shift = below_buy_dom and current_sell_dominance and close > poc_price
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// IRL 계산 (1H Swing High/Low)
+// ═══════════════════════════════════════════════════════════════════════════════
+swing_high_1h = ta.highest(high, irl_len)
+swing_low_1h = ta.lowest(low, irl_len)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ERL 계산 (1D Major High/Low)
+// ═══════════════════════════════════════════════════════════════════════════════
+[major_high_1d, major_low_1d] = request.security(syminfo.tickerid, "D", [ta.highest(high, erl_len), ta.lowest(low, erl_len)])
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FVG 감지
+// ═══════════════════════════════════════════════════════════════════════════════
+bull_fvg = low > high[2]
+bear_fvg = high < low[2]
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// OB 감지
+// ═══════════════════════════════════════════════════════════════════════════════
+atr_val = ta.atr(14)
+big_bull_candle = close > open and (close - open) > atr_val
+big_bear_candle = close < open and (open - close) > atr_val
+bull_ob = close[1] < open[1] and big_bull_candle
+bear_ob = close[1] > open[1] and big_bear_candle
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 인걸핑 패턴
+// ═══════════════════════════════════════════════════════════════════════════════
+bull_engulfing = close > open and close[1] < open[1] and close > open[1] and open < close[1]
+bear_engulfing = close < open and close[1] > open[1] and close < open[1] and open > close[1]
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 최종 진입 조건 (모두 충족)
+// ═══════════════════════════════════════════════════════════════════════════════
+// 기본 조건 (FVG/OB/인걸핑 중 하나)
+base_long = (bull_fvg or bull_ob or bull_engulfing) and htf_trend >= 0
+base_short = (bear_fvg or bear_ob or bear_engulfing) and htf_trend <= 0
+
+// + Volume Profile 전환 조건
+long_signal = base_long and vp_long_shift and strategy.position_size == 0
+short_signal = base_short and vp_short_shift and strategy.position_size == 0
+
+// 트레이드 방향 필터
+allow_long = trade_direction == "양방향 (Long & Short)" or trade_direction == "롱만 (Long Only)"
+allow_short = trade_direction == "양방향 (Long & Short)" or trade_direction == "숏만 (Short Only)"
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 전략 실행 - 분할 TP
+// ═══════════════════════════════════════════════════════════════════════════════
+if long_signal and allow_long and in_date_range
+    strategy.entry("Long", strategy.long)
+    
+    // TP1: IRL (Swing High) - 50%
+    tp1 = swing_high_1h
+    // TP2: ERL (Major High) - 50%
+    tp2 = major_high_1d
+    // SL: 0.715%
+    sl_price = close * (1 - sl_price_pct / 100)
+    
+    strategy.exit("Long TP1", "Long", qty_percent=50, limit=tp1, stop=sl_price)
+    strategy.exit("Long TP2", "Long", qty_percent=100, limit=tp2, stop=sl_price)
+    
+    label.new(bar_index, low, "▲ L" + str.tostring(leverage, "#") + "x\nVP전환", style=label.style_label_up, color=color.green, textcolor=color.white, size=size.small)
+
+if short_signal and allow_short and in_date_range
+    strategy.entry("Short", strategy.short)
+    
+    // TP1: IRL (Swing Low) - 50%
+    tp1 = swing_low_1h
+    // TP2: ERL (Major Low) - 50%
+    tp2 = major_low_1d
+    // SL: 0.715%
+    sl_price = close * (1 + sl_price_pct / 100)
+    
+    strategy.exit("Short TP1", "Short", qty_percent=50, limit=tp1, stop=sl_price)
+    strategy.exit("Short TP2", "Short", qty_percent=100, limit=tp2, stop=sl_price)
+    
+    label.new(bar_index, high, "▼ S" + str.tostring(leverage, "#") + "x\nVP전환", style=label.style_label_down, color=color.red, textcolor=color.white, size=size.small)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 시각화
+// ═══════════════════════════════════════════════════════════════════════════════
+plot(poc_price, "POC", color=color.orange, linewidth=2, style=plot.style_stepline)
+plot(va_high_price, "VA High", color=color.new(color.red, 50), linewidth=1, style=plot.style_stepline)
+plot(va_low_price, "VA Low", color=color.new(color.green, 50), linewidth=1, style=plot.style_stepline)
+plot(swing_high_1h, "IRL High", color=color.new(color.lime, 70), linewidth=1, style=plot.style_stepline)
+plot(swing_low_1h, "IRL Low", color=color.new(color.lime, 70), linewidth=1, style=plot.style_stepline)
+plot(major_high_1d, "ERL High", color=color.new(color.yellow, 50), linewidth=2, style=plot.style_stepline)
+plot(major_low_1d, "ERL Low", color=color.new(color.yellow, 50), linewidth=2, style=plot.style_stepline)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 레버리지 적용 수익 계산
+// ═══════════════════════════════════════════════════════════════════════════════
+pnl_1x = strategy.netprofit / strategy.initial_capital * 100
+pnl_leveraged = pnl_1x * leverage
+equity_leveraged = strategy.initial_capital * (1 + pnl_leveraged / 100)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 상태 테이블
+// ═══════════════════════════════════════════════════════════════════════════════
+var table info_table = table.new(position.top_right, 2, 12, bgcolor=color.new(color.black, 85), border_width=1, border_color=color.gray)
+
+table.cell(info_table, 0, 0, "HTF", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 0, htf_trend == 1 ? "▲ BULL" : htf_trend == -1 ? "▼ BEAR" : "◆ SIDE", text_color=htf_trend == 1 ? color.green : htf_trend == -1 ? color.red : color.gray, text_size=size.small)
+
+table.cell(info_table, 0, 1, "LEVERAGE", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 1, str.tostring(leverage, "#") + "x", text_color=color.yellow, text_size=size.small)
+
+table.cell(info_table, 0, 2, "SL", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 2, str.tostring(sl_price_pct, "#.###") + "% / " + str.tostring(sl_price_pct * leverage, "#") + "%", text_color=color.orange, text_size=size.small)
+
+table.cell(info_table, 0, 3, "POC", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 3, str.tostring(poc_price, "#.#"), text_color=color.orange, text_size=size.small)
+
+table.cell(info_table, 0, 4, "VA", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 4, str.tostring(va_low_price, "#.#") + " - " + str.tostring(va_high_price, "#.#"), text_color=color.gray, text_size=size.small)
+
+table.cell(info_table, 0, 5, "VP 상태", text_color=color.white, text_size=size.small)
+vp_status = current_buy_dominance ? "매수 우위" : current_sell_dominance ? "매도 우위" : "균형"
+table.cell(info_table, 1, 5, vp_status, text_color=current_buy_dominance ? color.green : current_sell_dominance ? color.red : color.gray, text_size=size.small)
+
+table.cell(info_table, 0, 6, "IRL High/Low", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 6, str.tostring(swing_high_1h, "#") + " / " + str.tostring(swing_low_1h, "#"), text_color=color.lime, text_size=size.small)
+
+table.cell(info_table, 0, 7, "ERL High/Low", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 7, str.tostring(major_high_1d, "#") + " / " + str.tostring(major_low_1d, "#"), text_color=color.yellow, text_size=size.small)
+
+table.cell(info_table, 0, 8, "POSITION", text_color=color.white, text_size=size.small)
+pos_txt = strategy.position_size > 0 ? "LONG" : strategy.position_size < 0 ? "SHORT" : "FLAT"
+table.cell(info_table, 1, 8, pos_txt, text_color=strategy.position_size > 0 ? color.green : strategy.position_size < 0 ? color.red : color.gray, text_size=size.small)
+
+table.cell(info_table, 0, 9, "P&L (1x)", text_color=color.gray, text_size=size.small)
+table.cell(info_table, 1, 9, str.tostring(pnl_1x, "#.##") + "%", text_color=pnl_1x > 0 ? color.green : color.red, text_size=size.small)
+
+table.cell(info_table, 0, 10, "★ P&L (" + str.tostring(leverage, "#") + "x)", text_color=color.yellow, text_size=size.small)
+table.cell(info_table, 1, 10, str.tostring(pnl_leveraged, "#.##") + "%", text_color=pnl_leveraged > 0 ? color.lime : color.fuchsia, text_size=size.normal)
+
+table.cell(info_table, 0, 11, "EQUITY", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 11, "$" + str.tostring(equity_leveraged, "#,###"), text_color=equity_leveraged > strategy.initial_capital ? color.lime : color.fuchsia, text_size=size.small)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 알림
+// ═══════════════════════════════════════════════════════════════════════════════
+alertcondition(long_signal, "VP Long Signal", '{"signal":"LONG","type":"VP_SHIFT"}')
+alertcondition(short_signal, "VP Short Signal", '{"signal":"SHORT","type":"VP_SHIFT"}')
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// END - ICT Strategy V4-VP
+// ═══════════════════════════════════════════════════════════════════════════════

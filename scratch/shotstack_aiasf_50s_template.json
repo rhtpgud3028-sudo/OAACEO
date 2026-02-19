@@ -1,0 +1,291 @@
+{
+    "timeline": {
+        "soundtrack": {
+            "src": "{{ BGM_URL }}",
+            "effect": "fadeOut",
+            "volume": 0.3
+        },
+        "background": "#000000",
+        "fonts": [
+            {
+                "src": "https://autoshort.site/fonts/static/NotoSansKR-Regular.ttf"
+            }
+        ],
+        "tracks": [
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "audio",
+                            "src": "{{ TTS_AUDIO_URL }}"
+                        },
+                        "start": 0,
+                        "length": 50
+                    }
+                ]
+            },
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 40px; color: white; background: rgba(0,0,0,0.75); padding: 12px 24px; border-radius: 10px; max-width: 90%; text-align: center;\">{{ SUBTITLE_1 }}</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 350
+                        },
+                        "start": 0,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.03
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 40px; color: white; background: rgba(0,0,0,0.75); padding: 12px 24px; border-radius: 10px; max-width: 90%; text-align: center;\">{{ SUBTITLE_2 }}</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 350
+                        },
+                        "start": 5,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.03
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 40px; color: white; background: rgba(0,0,0,0.75); padding: 12px 24px; border-radius: 10px; max-width: 90%; text-align: center;\">{{ SUBTITLE_3 }}</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 350
+                        },
+                        "start": 10,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.03
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 40px; color: white; background: rgba(0,0,0,0.75); padding: 12px 24px; border-radius: 10px; max-width: 90%; text-align: center;\">{{ SUBTITLE_4 }}</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 350
+                        },
+                        "start": 15,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.03
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 40px; color: white; background: rgba(0,0,0,0.75); padding: 12px 24px; border-radius: 10px; max-width: 90%; text-align: center;\">{{ SUBTITLE_5 }}</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 350
+                        },
+                        "start": 20,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.03
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 40px; color: white; background: rgba(0,0,0,0.75); padding: 12px 24px; border-radius: 10px; max-width: 90%; text-align: center;\">{{ SUBTITLE_6 }}</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 350
+                        },
+                        "start": 25,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.03
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 40px; color: white; background: rgba(0,0,0,0.75); padding: 12px 24px; border-radius: 10px; max-width: 90%; text-align: center;\">{{ SUBTITLE_7 }}</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 350
+                        },
+                        "start": 30,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.03
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 40px; color: white; background: rgba(0,0,0,0.75); padding: 12px 24px; border-radius: 10px; max-width: 90%; text-align: center;\">{{ SUBTITLE_8 }}</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 350
+                        },
+                        "start": 35,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.03
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 40px; color: white; background: rgba(0,0,0,0.75); padding: 12px 24px; border-radius: 10px; max-width: 90%; text-align: center;\">{{ SUBTITLE_9 }}</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 350
+                        },
+                        "start": 40,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.03
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 40px; color: white; background: rgba(0,0,0,0.75); padding: 12px 24px; border-radius: 10px; max-width: 90%; text-align: center;\">{{ SUBTITLE_10 }}</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 350
+                        },
+                        "start": 45,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.03
+                        }
+                    }
+                ]
+            },
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "video",
+                            "src": "{{ INTRO_VIDEO_URL }}"
+                        },
+                        "start": 0,
+                        "length": 5,
+                        "fit": "cover"
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "{{ IMAGE_1 }}"
+                        },
+                        "start": 5,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "zoomIn"
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "{{ IMAGE_2 }}"
+                        },
+                        "start": 10,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "zoomIn"
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "{{ IMAGE_3 }}"
+                        },
+                        "start": 15,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "zoomIn"
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "{{ IMAGE_4 }}"
+                        },
+                        "start": 20,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "zoomIn"
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "{{ IMAGE_5 }}"
+                        },
+                        "start": 25,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "zoomIn"
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "{{ IMAGE_6 }}"
+                        },
+                        "start": 30,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "zoomIn"
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "{{ IMAGE_7 }}"
+                        },
+                        "start": 35,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "zoomIn"
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "{{ IMAGE_8 }}"
+                        },
+                        "start": 40,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "zoomIn"
+                    },
+                    {
+                        "asset": {
+                            "type": "video",
+                            "src": "{{ OUTRO_VIDEO_URL }}"
+                        },
+                        "start": 45,
+                        "length": 5,
+                        "fit": "cover"
+                    }
+                ]
+            }
+        ]
+    },
+    "output": {
+        "format": "mp4",
+        "resolution": "hd",
+        "aspectRatio": "9:16",
+        "fps": 30
+    }
+}

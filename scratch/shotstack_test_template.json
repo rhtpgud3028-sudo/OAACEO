@@ -1,0 +1,57 @@
+{
+  "timeline": {
+    "background": "#000000",
+    "tracks": [
+      {
+        "clips": [
+          {
+            "asset": {
+              "type": "image",
+              "src": "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=1080"
+            },
+            "start": 0,
+            "length": 3,
+            "fit": "cover",
+            "effect": "zoomIn",
+            "transition": {
+              "out": "fade"
+            }
+          },
+          {
+            "asset": {
+              "type": "image",
+              "src": "https://images.pexels.com/photos/1099680/pexels-photo-1099680.jpeg?auto=compress&cs=tinysrgb&w=1080"
+            },
+            "start": 3,
+            "length": 3,
+            "fit": "cover",
+            "effect": "zoomIn",
+            "transition": {
+              "in": "fade",
+              "out": "fade"
+            }
+          },
+          {
+            "asset": {
+              "type": "image",
+              "src": "https://images.pexels.com/photos/1092730/pexels-photo-1092730.jpeg?auto=compress&cs=tinysrgb&w=1080"
+            },
+            "start": 6,
+            "length": 3,
+            "fit": "cover",
+            "effect": "zoomIn",
+            "transition": {
+              "in": "fade"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "output": {
+    "format": "mp4",
+    "resolution": "hd",
+    "aspectRatio": "9:16",
+    "fps": 30
+  }
+}

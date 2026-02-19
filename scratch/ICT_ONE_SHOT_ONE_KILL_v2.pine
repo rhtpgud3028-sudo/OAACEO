@@ -1,0 +1,336 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © ICT Trading Strategy v2.0 - "ONE SHOT ONE KILL"
+// Based on: Daily Bias + Killzone + Liquidity Sweep + MSS + FVG/OB Confluence
+
+//@version=5
+strategy("ICT ONE SHOT ONE KILL v2.0", overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.percent, commission_value=0.04, slippage=1, pyramiding=0, margin_long=100/58, margin_short=100/58)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 전략 설정
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_strategy = "═══ 전략 설정 ═══"
+leverage = input.float(58.0, "Leverage (x)", minval=1.0, maxval=125.0, step=1.0, group=grp_strategy)
+min_rr = input.float(3.0, "Minimum RR Ratio", minval=1.0, maxval=10.0, step=0.5, group=grp_strategy)
+sl_buffer_pips = input.float(10.0, "SL Buffer (pips)", minval=1.0, maxval=50.0, group=grp_strategy)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Killzone 시간 필터 (KST 기준)
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_killzone = "═══ Killzone 시간 필터 ═══"
+use_killzone = input.bool(true, "Use Killzone Filter", group=grp_killzone)
+ny_am_start = input.int(14, "NY AM Start (UTC)", minval=0, maxval=23, group=grp_killzone)  // 23:00 KST = 14:00 UTC
+ny_am_end = input.int(15, "NY AM End (UTC)", minval=0, maxval=23, group=grp_killzone)      // 00:00 KST = 15:00 UTC
+ny_pm_start = input.int(18, "NY PM Start (UTC)", minval=0, maxval=23, group=grp_killzone)  // 03:00 KST = 18:00 UTC
+ny_pm_end = input.int(19, "NY PM End (UTC)", minval=0, maxval=23, group=grp_killzone)      // 04:00 KST = 19:00 UTC
+london_start = input.int(7, "London Start (UTC)", minval=0, maxval=23, group=grp_killzone) // 16:00 KST = 07:00 UTC
+london_end = input.int(9, "London End (UTC)", minval=0, maxval=23, group=grp_killzone)     // 18:00 KST = 09:00 UTC
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Daily Bias 설정
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_bias = "═══ Daily Bias ═══"
+htf_tf = input.timeframe("240", "HTF for Bias (4H)", group=grp_bias)
+bias_lookback = input.int(20, "Bias Lookback Bars", minval=5, maxval=50, group=grp_bias)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 시각화 설정
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_visual = "═══ 시각화 ═══"
+show_prev_day_hl = input.bool(true, "Show Previous Day H/L", group=grp_visual)
+show_htf_ob = input.bool(true, "Show HTF OB (4H)", group=grp_visual)
+show_fvg = input.bool(true, "Show FVG", group=grp_visual)
+show_sweep = input.bool(true, "Show Liquidity Sweep", group=grp_visual)
+show_mss = input.bool(true, "Show MSS", group=grp_visual)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 변수 초기화
+// ═══════════════════════════════════════════════════════════════════════════════
+var int daily_bias = 0  // 1 = Long, -1 = Short, 0 = Neutral
+var bool sweep_detected = false
+var bool mss_detected = false
+var float sweep_level = na
+var float mss_level = na
+var float entry_price = na
+var float sl_price = na
+var float tp1_price = na
+var float tp2_price = na
+var float tp3_price = na
+
+// 이전 일 고저가
+var float prev_day_high = na
+var float prev_day_low = na
+var float asia_high = na
+var float asia_low = na
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 함수 정의
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Killzone 활성 확인
+f_is_killzone() =>
+    current_hour = hour(time, "UTC")
+    ny_am = current_hour >= ny_am_start and current_hour <= ny_am_end
+    ny_pm = current_hour >= ny_pm_start and current_hour <= ny_pm_end
+    london = current_hour >= london_start and current_hour <= london_end
+    use_killzone ? (ny_am or ny_pm or london) : true
+
+// Daily Bias 계산 (HTF 기반)
+[htf_high, htf_low, htf_close, htf_open] = request.security(syminfo.tickerid, htf_tf, [high, low, close, open])
+
+f_calculate_daily_bias() =>
+    // 최근 스윙을 기반으로 추세 판단
+    highest_high = ta.highest(htf_high, bias_lookback)
+    lowest_low = ta.lowest(htf_low, bias_lookback)
+    mid_point = (highest_high + lowest_low) / 2
+    
+    // HH-HL = Bullish, LH-LL = Bearish
+    bullish_trend = htf_close > mid_point and htf_close > htf_close[1]
+    bearish_trend = htf_close < mid_point and htf_close < htf_close[1]
+    
+    bullish_trend ? 1 : bearish_trend ? -1 : 0
+
+// FVG 감지
+f_detect_bull_fvg() =>
+    low > high[2]
+
+f_detect_bear_fvg() =>
+    high < low[2]
+
+// Liquidity Sweep 감지
+f_detect_bsl_sweep() =>
+    // 고점 스윕 후 되돌림
+    swept = high > prev_day_high and close < prev_day_high
+    swept
+
+f_detect_ssl_sweep() =>
+    // 저점 스윕 후 되돌림
+    swept = low < prev_day_low and close > prev_day_low
+    swept
+
+// MSS (Market Structure Shift) 감지
+pivot_len = 3
+pivot_high_val = ta.pivothigh(high, pivot_len, pivot_len)
+pivot_low_val = ta.pivotlow(low, pivot_len, pivot_len)
+
+var float last_pivot_high = na
+var float last_pivot_low = na
+var float prev_pivot_high = na
+var float prev_pivot_low = na
+
+if not na(pivot_high_val)
+    prev_pivot_high := last_pivot_high
+    last_pivot_high := pivot_high_val
+
+if not na(pivot_low_val)
+    prev_pivot_low := last_pivot_low
+    last_pivot_low := pivot_low_val
+
+// Bullish MSS: 이전 LH를 상향 돌파
+bullish_mss = close > nz(last_pivot_high, high) and close > open and (close - open) > ta.atr(14) * 0.5
+// Bearish MSS: 이전 HL를 하향 돌파
+bearish_mss = close < nz(last_pivot_low, low) and close < open and (open - close) > ta.atr(14) * 0.5
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 이전 일 고저가 업데이트
+// ═══════════════════════════════════════════════════════════════════════════════
+new_day = ta.change(time("D")) != 0
+if new_day
+    prev_day_high := high[1]
+    prev_day_low := low[1]
+    // 아시아 세션 초기화 (23:00 UTC 이전 = 아시아)
+    asia_high := high
+    asia_low := low
+
+// 아시아 세션 고저 업데이트 (UTC 00:00 ~ 07:00 = 아시아)
+asia_session = hour(time, "UTC") >= 0 and hour(time, "UTC") < 7
+if asia_session
+    asia_high := math.max(nz(asia_high, high), high)
+    asia_low := math.min(nz(asia_low, low), low)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Daily Bias 업데이트
+// ═══════════════════════════════════════════════════════════════════════════════
+daily_bias := f_calculate_daily_bias()
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Liquidity Sweep 감지
+// ═══════════════════════════════════════════════════════════════════════════════
+bsl_sweep = f_detect_bsl_sweep()
+ssl_sweep = f_detect_ssl_sweep()
+
+if bsl_sweep and show_sweep
+    label.new(bar_index, high, "BSL SWEEP", style=label.style_label_down, color=color.red, textcolor=color.white, size=size.small)
+    sweep_detected := true
+    sweep_level := prev_day_high
+
+if ssl_sweep and show_sweep
+    label.new(bar_index, low, "SSL SWEEP", style=label.style_label_up, color=color.green, textcolor=color.white, size=size.small)
+    sweep_detected := true
+    sweep_level := prev_day_low
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MSS 감지
+// ═══════════════════════════════════════════════════════════════════════════════
+if bullish_mss and show_mss
+    label.new(bar_index, low, "MSS▲", style=label.style_label_up, color=color.teal, textcolor=color.white, size=size.small)
+    mss_detected := true
+    mss_level := low
+
+if bearish_mss and show_mss
+    label.new(bar_index, high, "MSS▼", style=label.style_label_down, color=color.maroon, textcolor=color.white, size=size.small)
+    mss_detected := true
+    mss_level := high
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FVG 감지 및 표시
+// ═══════════════════════════════════════════════════════════════════════════════
+bull_fvg = f_detect_bull_fvg()
+bear_fvg = f_detect_bear_fvg()
+
+var float bull_fvg_top = na
+var float bull_fvg_bottom = na
+var float bear_fvg_top = na
+var float bear_fvg_bottom = na
+
+if bull_fvg and show_fvg
+    bull_fvg_top := low
+    bull_fvg_bottom := high[2]
+    box.new(bar_index - 1, bull_fvg_top, bar_index + 10, bull_fvg_bottom, bgcolor=color.new(color.green, 80), border_color=color.green, border_width=1)
+    label.new(bar_index, bull_fvg_bottom, "FVG", style=label.style_label_up, color=color.new(color.green, 50), textcolor=color.white, size=size.tiny)
+
+if bear_fvg and show_fvg
+    bear_fvg_top := low[2]
+    bear_fvg_bottom := high
+    box.new(bar_index - 1, bear_fvg_top, bar_index + 10, bear_fvg_bottom, bgcolor=color.new(color.red, 80), border_color=color.red, border_width=1)
+    label.new(bar_index, bear_fvg_top, "FVG", style=label.style_label_down, color=color.new(color.red, 50), textcolor=color.white, size=size.tiny)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Previous Day H/L 표시
+// ═══════════════════════════════════════════════════════════════════════════════
+plot(show_prev_day_hl ? prev_day_high : na, "Prev Day High", color=color.new(color.red, 30), linewidth=2, style=plot.style_linebr)
+plot(show_prev_day_hl ? prev_day_low : na, "Prev Day Low", color=color.new(color.green, 30), linewidth=2, style=plot.style_linebr)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 진입 조건 (ONE SHOT ONE KILL)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// LONG 조건
+long_bias = daily_bias == 1 or daily_bias == 0  // 상승 또는 중립 bias
+long_killzone = f_is_killzone()
+long_sweep = ssl_sweep or (sweep_detected and sweep_level < close)
+long_mss = bullish_mss
+long_fvg = bull_fvg or (not na(bull_fvg_top) and low <= bull_fvg_top and high >= bull_fvg_bottom)
+
+// 모든 조건 충족
+long_condition = long_bias and long_killzone and (long_sweep or long_mss) and strategy.position_size == 0
+
+// SHORT 조건
+short_bias = daily_bias == -1 or daily_bias == 0  // 하락 또는 중립 bias
+short_killzone = f_is_killzone()
+short_sweep = bsl_sweep or (sweep_detected and sweep_level > close)
+short_mss = bearish_mss
+short_fvg = bear_fvg or (not na(bear_fvg_top) and low <= bear_fvg_top and high >= bear_fvg_bottom)
+
+// 모든 조건 충족
+short_condition = short_bias and short_killzone and (short_sweep or short_mss) and strategy.position_size == 0
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// RR 계산 및 검증
+// ═══════════════════════════════════════════════════════════════════════════════
+atr_val = ta.atr(14)
+
+// LONG RR 계산
+long_sl = nz(mss_level, low) - sl_buffer_pips * syminfo.mintick * 10
+long_risk = close - long_sl
+long_tp3 = prev_day_high  // 유동성 타겟
+long_reward = long_tp3 - close
+long_rr = long_reward / math.max(long_risk, 0.0001)
+long_rr_valid = long_rr >= min_rr
+
+// SHORT RR 계산
+short_sl = nz(mss_level, high) + sl_buffer_pips * syminfo.mintick * 10
+short_risk = short_sl - close
+short_tp3 = prev_day_low  // 유동성 타겟
+short_reward = close - short_tp3
+short_rr = short_reward / math.max(short_risk, 0.0001)
+short_rr_valid = short_rr >= min_rr
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 전략 실행
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// LONG 진입
+if long_condition and long_rr_valid
+    strategy.entry("Long", strategy.long)
+    
+    // TP/SL 설정
+    sl = close - long_risk
+    tp1 = close + long_risk * 1.0  // 1:1
+    tp2 = close + long_risk * 2.0  // 1:2
+    tp3 = long_tp3                  // 유동성 타겟
+    
+    strategy.exit("Long TP1", "Long", qty_percent=30, limit=tp1, stop=sl)
+    strategy.exit("Long TP2", "Long", qty_percent=40, limit=tp2, stop=sl)
+    strategy.exit("Long TP3", "Long", qty_percent=30, limit=tp3, stop=sl)
+    
+    label.new(bar_index, low, "LONG\nRR:" + str.tostring(long_rr, "#.#"), style=label.style_label_up, color=color.green, textcolor=color.white, size=size.normal)
+
+// SHORT 진입
+if short_condition and short_rr_valid
+    strategy.entry("Short", strategy.short)
+    
+    // TP/SL 설정
+    sl = close + short_risk
+    tp1 = close - short_risk * 1.0  // 1:1
+    tp2 = close - short_risk * 2.0  // 1:2
+    tp3 = short_tp3                  // 유동성 타겟
+    
+    strategy.exit("Short TP1", "Short", qty_percent=30, limit=tp1, stop=sl)
+    strategy.exit("Short TP2", "Short", qty_percent=40, limit=tp2, stop=sl)
+    strategy.exit("Short TP3", "Short", qty_percent=30, limit=tp3, stop=sl)
+    
+    label.new(bar_index, high, "SHORT\nRR:" + str.tostring(short_rr, "#.#"), style=label.style_label_down, color=color.red, textcolor=color.white, size=size.normal)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 배경색 (Killzone 표시)
+// ═══════════════════════════════════════════════════════════════════════════════
+is_killzone = f_is_killzone()
+bgcolor(is_killzone and use_killzone ? color.new(color.blue, 95) : na)
+
+// 포지션 상태 배경
+bgcolor(strategy.position_size > 0 ? color.new(color.green, 92) : strategy.position_size < 0 ? color.new(color.red, 92) : na)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Daily Bias 표시
+// ═══════════════════════════════════════════════════════════════════════════════
+var table bias_table = table.new(position.top_right, 2, 4, bgcolor=color.new(color.black, 80), border_width=1)
+
+if barstate.islast
+    table.cell(bias_table, 0, 0, "DAILY BIAS", text_color=color.white, text_size=size.small)
+    bias_text = daily_bias == 1 ? "LONG" : daily_bias == -1 ? "SHORT" : "NEUTRAL"
+    bias_color = daily_bias == 1 ? color.green : daily_bias == -1 ? color.red : color.gray
+    table.cell(bias_table, 1, 0, bias_text, text_color=bias_color, text_size=size.small)
+    
+    table.cell(bias_table, 0, 1, "KILLZONE", text_color=color.white, text_size=size.small)
+    table.cell(bias_table, 1, 1, is_killzone ? "ACTIVE" : "INACTIVE", text_color=is_killzone ? color.green : color.gray, text_size=size.small)
+    
+    table.cell(bias_table, 0, 2, "POSITION", text_color=color.white, text_size=size.small)
+    pos_text = strategy.position_size > 0 ? "LONG" : strategy.position_size < 0 ? "SHORT" : "FLAT"
+    table.cell(bias_table, 1, 2, pos_text, text_color=strategy.position_size > 0 ? color.green : strategy.position_size < 0 ? color.red : color.gray, text_size=size.small)
+    
+    table.cell(bias_table, 0, 3, "P&L", text_color=color.white, text_size=size.small)
+    table.cell(bias_table, 1, 3, str.tostring(strategy.netprofit / strategy.initial_capital * 100, "#.##") + "%", text_color=strategy.netprofit > 0 ? color.green : color.red, text_size=size.small)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 알림
+// ═══════════════════════════════════════════════════════════════════════════════
+alertcondition(long_condition and long_rr_valid, "Long Entry Signal", '{"signal":"LONG","price":"{{close}}","time":"{{time}}"}')
+alertcondition(short_condition and short_rr_valid, "Short Entry Signal", '{"signal":"SHORT","price":"{{close}}","time":"{{time}}"}')
+alertcondition(ssl_sweep, "SSL Sweep Detected", '{"event":"SSL_SWEEP","price":"{{close}}"}')
+alertcondition(bsl_sweep, "BSL Sweep Detected", '{"event":"BSL_SWEEP","price":"{{close}}"}')
+alertcondition(bullish_mss, "Bullish MSS", '{"event":"BULLISH_MSS","price":"{{close}}"}')
+alertcondition(bearish_mss, "Bearish MSS", '{"event":"BEARISH_MSS","price":"{{close}}"}')
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// END OF STRATEGY - ONE SHOT ONE KILL v2.0
+// ═══════════════════════════════════════════════════════════════════════════════

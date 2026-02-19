@@ -1,0 +1,171 @@
+# 콘텐츠 동기화 시스템 - 적용 가이드
+
+> **v16.0**: 스크립트-이미지-영상 완전 동기화
+
+---
+
+## 📋 수정할 노드 & 순서
+
+| # | 노드 | 변경 내용 | 상태 |
+|---|------|----------|------|
+| 1 | **3. GPT 스크립트** | System Prompt 교체 | 📂 파일 준비됨 |
+| 2 | **4. GPT 이미지** | 프롬프트 소스 변경 | 📝 가이드 아래 |
+| 3 | **5a. Kling 생성 Intro** | 프롬프트 소스 변경 | 📝 가이드 아래 |
+| 4 | **5b. Kling 생성 Outro** | 프롬프트 소스 변경 | 📝 가이드 아래 |
+| 5 | **6. Shotstack Code** | v16.0 코드 교체 | ✅ 파일 완성됨 |
+
+---
+
+## 1️⃣ GPT 스크립트 노드
+
+**파일**: [GPT_Script_System_Prompt.md](file:///C:/Users/user/.gemini/antigravity/brain/26ad2a96-d88f-41be-aef0-a0c4dff483d4/GPT_Script_System_Prompt.md)
+
+**적용 방법**:
+1. n8n → 「3. GPT 스크립트」 노드 열기
+2. System Prompt 필드 전체 교체
+3. 저장
+
+---
+
+## 2️⃣ GPT 이미지 노드 수정
+
+**현재 문제**: 별도 GPT 호출로 스크립트와 불일치
+
+**해결**: 「3. GPT 스크립트」가 생성한 `image_prompts` 사용
+
+### 옵션 A: Split Prompts 방식 (권장)
+
+「4. GPT 이미지」 노드 **삭제** 또는 **비활성화**
+
+대신 새로운 「Split Image Prompts」 Code 노드 추가:
+
+```javascript
+// 「3. GPT 스크립트」 바로 다음에 배치
+const gptContent = $input.first().json.message?.content || "{}";
+const parsed = JSON.parse(gptContent);
+const segments = parsed.segments || [];
+
+// 각 세그먼트의 image_prompt를 개별 아이템으로 분리
+return segments.map((seg, i) => ({
+  json: {
+    prompt: seg.image_prompt || "",
+    index: i,
+    text: seg.text || ""
+  }
+}));
+```
+
+→ 이 출력을 「5. DALL-E 3 이미지」 노드에 연결
+
+### 옵션 B: 기존 구조 유지
+
+「4. GPT 이미지」 노드의 Prompt 변경:
+
+**현재**: 
+```
+Based on the following script... generate 8 image prompts...
+```
+
+**변경**:
+```
+{{ JSON.parse($('3. GPT 스크립트').first().json.message.content).segments.map(s => s.image_prompt) }}
+```
+
+---
+
+## 3️⃣ Kling 인트로 노드 수정
+
+**노드**: 「5a. Kling 생성 Intro」
+
+**현재 Body**:
+```json
+{
+  "prompt": "{{ $('크림토').first().json.message.content.intro_prompt }}",
+  ...
+}
+```
+
+**변경**: GPT 스크립트에서 직접 가져오기
+
+```json
+{
+  "prompt": "{{ JSON.parse($('3. GPT 스크립트').first().json.message.content).intro_video_prompt }}",
+  "aspect_ratio": "9:16",
+  "duration": 5,
+  "mode": "std",
+  "cfg_scale": 0.5
+}
+```
+
+---
+
+## 4️⃣ Kling 아웃트로 노드 수정
+
+**노드**: 「5b. Kling 생성 Outro」 (또는 유사한 이름)
+
+**변경**:
+```json
+{
+  "prompt": "{{ JSON.parse($('3. GPT 스크립트').first().json.message.content).outro_video_prompt }}",
+  "aspect_ratio": "9:16",
+  "duration": 5,
+  "mode": "std",
+  "cfg_scale": 0.5
+}
+```
+
+---
+
+## 5️⃣ Shotstack Code 노드
+
+**파일**: [n8n_shotstack_builder.js](file:///C:/Users/user/.gemini/antigravity/scratch/n8n_shotstack_builder.js) (v16.0)
+
+**적용 방법**:
+1. n8n → 「6. Shotstack JSON Builder」 Code 노드 열기
+2. 기존 코드 전체 삭제
+3. [n8n_shotstack_builder.js](file:///C:/Users/user/.gemini/antigravity/scratch/n8n_shotstack_builder.js) 내용 복사 → 붙여넣기
+4. 저장
+
+---
+
+## 📊 데이터 흐름 (v16.0)
+
+```
+                    ┌─────────────────────────────────────────┐
+                    │        3. GPT 스크립트 (통합)            │
+                    │  ┌─────────────────────────────────────┐│
+                    │  │ {                                   ││
+                    │  │   "segments": [                     ││
+                    │  │     { "text": "...", "image_prompt": "..." }││
+                    │  │   ],                                ││
+                    │  │   "intro_video_prompt": "...",      ││
+                    │  │   "outro_video_prompt": "..."       ││
+                    │  │ }                                   ││
+                    │  └─────────────────────────────────────┘│
+                    └───────────────┬───────────────────────┬─┘
+                                    │                       │
+           ┌────────────────────────┴────┐                  │
+           ▼                             ▼                  ▼
+    ┌─────────────┐              ┌─────────────┐    ┌─────────────┐
+    │ DALL-E x 8  │              │ Kling Intro │    │ Kling Outro │
+    │ (1:1 매칭)  │              │  (동기화)   │    │  (동기화)   │
+    └──────┬──────┘              └──────┬──────┘    └──────┬──────┘
+           │                            │                  │
+           └────────────────────────────┼──────────────────┘
+                                        ▼
+                              ┌─────────────────┐
+                              │ Shotstack v16.0 │
+                              │ (자막 + 영상 합성)│
+                              └─────────────────┘
+```
+
+---
+
+## ✅ 테스트 순서
+
+1. 모든 노드 수정 완료
+2. Manual Trigger 클릭
+3. 「3. GPT 스크립트」 출력 확인 (segments 구조)
+4. 각 이미지가 해당 문장과 매칭되는지 확인
+5. 인트로/아웃트로 영상이 주제와 일치하는지 확인
+6. 최종 영상 YouTube 업로드 테스트

@@ -1,0 +1,181 @@
+# 🎯 Shotstack 자막 근본 해결책 (FINAL!)
+
+> **분석일**: 2026-01-26
+> **결론**: 지금까지의 미봉책 → 근본 해결로 전환!
+
+---
+
+## 🔴 지금까지의 문제: 왜 계속 반복됐나?
+
+### 미봉책 히스토리:
+| 버전 | 변경 | 결과 |
+|------|------|------|
+| v20.3 | width: 1000 | 여전히 잘림 |
+| v20.9 | width: 900 | 잘림 |
+| v20.12 | width: 850 | 잘림 |
+| v20.16 | width: 720 | 더 심하게 잘림! |
+| v20.17 | width: 800 | ??? |
+
+### 🚨 근본 문제 발견:
+
+**문제 1: 수동 줄바꿈 (`\n`)이 Shotstack 렌더링과 충돌!**
+```javascript
+// ❌ 현재 방식 (문제!)
+function formatSubtitle(text) {
+    return text.split(MAX_CHARS).join('\n');  // 수동으로 '\n' 삽입
+}
+```
+→ Shotstack은 `\n`을 인식하지만, **width와의 상호작용이 불안정!**
+
+**문제 2: width 단위 오해**
+- Shotstack clip의 `width`는 **픽셀 단위!**
+- 9:16 HD 해상도 = **1080px 너비**
+- width: 720 = 화면의 **66.7%** → 너무 좁음!
+- width: 800 = 화면의 **74%** → 여전히 좁음!
+
+**문제 3: 폰트 크기와 width의 부조화**
+- 폰트 60px에서 한글 1자 ≈ 40-50px
+- width 800에 60px 폰트 = **약 16자만 들어감**
+- 수동 줄바꿈(13자)과 충돌 → 이상한 렌더링!
+
+---
+
+## ✅ 근본 해결책: 단 하나의 조정!
+
+### 🎯 핵심 원리:
+> **Shotstack의 자동 줄바꿈(word-wrap)에 맡기고, 수동 줄바꿈 제거!**
+
+### 최종 설정값:
+
+| 항목 | 기존 (미봉책) | 최종 (근본 해결) | 이유 |
+|------|-------------|-----------------|------|
+| **width** | 720~800 | **960** | 화면의 89% (양쪽 60px 여백) |
+| **font.size** | 60 | **52** | width 960에 최적화 |
+| **수동 줄바꿈** | [formatSubtitle()](file:///C:/Users/user/.gemini/antigravity/scratch/n8n_shotstack_builder_v20.16.js#381-405) | **제거!** | Shotstack 자동 줄바꿈 사용 |
+| **MAX_CHARS** | 11~14 | **제거!** | 불필요 |
+
+### 계산 근거:
+```
+9:16 HD 해상도 = 1080px 너비
+양쪽 여백 60px = 960px 자막 영역
+폰트 52px → 한글 1자 ≈ 35px
+960px / 35px = ~27자/줄 (자동 줄바꿈)
+```
+
+---
+
+## 🔧 코드 변경 (v20.18 FINAL!)
+
+### 변경 1: 자막 설정 (getSubtitleRules)
+
+```javascript
+// ✅ v20.18 FINAL: 근본 해결!
+const getSubtitleRules = () => {
+    const brandColor = brandingConfig?.branding?.primaryColor || "#000000";
+
+    return {
+        font: {
+            family: "Noto Sans KR",
+            size: 52,           // ✅ 60→52 (width 960에 최적화!)
+            color: "#FFFFFF",
+            opacity: 1,
+            weight: "700"
+        },
+        style: {
+            lineHeight: 1.6,    // ✅ 1.8→1.6 (줄간격 적당히)
+            letterSpacing: 1    // ✅ 2→1 (자간 축소)
+        },
+        background: {
+            color: brandColor,
+            opacity: 0.85
+        },
+        size: {
+            width: 960,         // ✅ 핵심! 화면의 89%
+            height: 500         // ✅ 여유있게
+        },
+        position: {
+            offsetX: 0,
+            offsetY: -0.22      // ✅ 하단 위치
+        }
+    };
+};
+```
+
+### 변경 2: formatSubtitle 함수 → 완전 제거!
+
+```javascript
+// ❌ 기존 (제거!)
+function formatSubtitle(text) {
+    const MAX_CHARS_PER_LINE = 13;
+    // ... 수동 줄바꿈 로직
+    return lines.join('\n');
+}
+
+// ✅ 신규 (단순화!)
+function formatSubtitle(text) {
+    if (!text) return "";
+    return String(text).trim();  // 줄바꿈 없이 텍스트만!
+}
+```
+
+### 변경 3: 자막 클립 생성 (정확한 width 전달)
+
+```javascript
+subtitleClips.push({
+    asset: {
+        type: "rich-text",
+        text: formatSubtitle(rawText),  // ✅ 줄바꿈 없는 텍스트
+        font: SUBTITLE_ABSOLUTE_RULES.font,
+        style: SUBTITLE_ABSOLUTE_RULES.style,
+        background: SUBTITLE_ABSOLUTE_RULES.background,
+        align: { horizontal: "center", vertical: "middle" }
+    },
+    start: subtitleStartTimes[i],
+    length: segmentTimes[i],
+    position: "center",
+    width: 960,    // ✅ 핵심! Shotstack이 여기서 자동 줄바꿈!
+    height: 400,   // ✅ 4줄까지 표시 가능
+    offset: {
+        x: 0,
+        y: -0.22
+    }
+});
+```
+
+---
+
+## 📊 최종 설정값 요약 (v20.18)
+
+| 항목 | 값 | 근거 |
+|------|-----|------|
+| **width** | 960px | 1080px 화면의 89% |
+| **height** | 400~500px | 4줄까지 표시 |
+| **font.size** | 52px | 5060 가독성 유지 + width 최적화 |
+| **lineHeight** | 1.6 | 줄간격 적당 |
+| **letterSpacing** | 1 | 자간 약간 |
+| **offset.y** | -0.22 | 하단 자막 위치 |
+| **수동 줄바꿈** | ❌ 제거 | Shotstack 자동 줄바꿈! |
+
+---
+
+## ✅ 이 해결책이 근본적인 이유
+
+| 기존 문제 | 해결 방법 |
+|----------|----------|
+| 자막 좌/우 잘림 | width 960 = 화면 89% 확보 |
+| 줄바꿈 안됨 | Shotstack 자동 줄바꿈에 맡김 |
+| 글자 겹침/잘림 | 수동 `\n` 제거 → 충돌 제거 |
+| TTS 끊김 | v20.17에서 이미 해결 (동적 length) |
+
+---
+
+## 🚀 다음 단계
+
+1. [ ] v20.18 FINAL 코드 생성
+2. [ ] n8n 적용
+3. [ ] 테스트 (자막 정상 확인)
+4. [ ] 위키 업데이트
+
+---
+
+> **🎯 결론**: width 960 + font 52 + 수동 줄바꿈 제거 = **자막 문제 근본 해결!**

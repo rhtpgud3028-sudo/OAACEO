@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "n8n 워크플로우 체크포인트 시스템 구현 계획 - 중간 결과물 저장 및 오류 시 재사용 기능",
+  "updatedAt":  "2026-01-09T05:53:19.618180600Z",
+  "version":  "6"
+}

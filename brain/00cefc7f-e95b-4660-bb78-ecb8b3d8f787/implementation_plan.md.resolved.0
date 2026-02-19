@@ -1,0 +1,155 @@
+# YouTube API Screencast v6.0 제작 계획
+
+## 배경
+YouTube API 팀이 **"API 클라이언트가 어떻게 API를 사용하여 영상을 업로드하는지"** 실제 시연을 요청함.
+기존 v5.0 영상은 비즈니스 비전 슬라이드 위주로 기술 시연이 없었음.
+
+---
+
+## 목표
+**60초 내외**의 간결한 **기술 시연 영상** 제작
+- 실제 업로드 과정 화면 녹화
+- 민감 정보(API 키, OAuth 토큰) 블러 처리
+- 영어 TTS 나레이션
+
+---
+
+## 영상 구성 (v6.0)
+
+> **⚠️ 핵심 전략**: 기술 시연에 집중! 비즈니스 설명은 최소화!
+
+### 장면 구성
+
+| # | 시간 | 화면 | 나레이션 |
+|---|------|------|----------|
+| 1 | 0-10초 | YouTube 채널 페이지 | "This is our YouTube channel for educational content." |
+| 2 | 10-25초 | n8n 워크플로우 (YouTube Upload 노드 확대) | "We use YouTube Data API through our automation tool to upload videos." |
+| 3 | 25-40초 | 워크플로우 실행 → 업로드 진행 | "Here's the actual upload process in action." |
+| 4 | 40-55초 | YouTube Studio에서 영상 확인 | "The video is now uploaded to YouTube Studio. Our team reviews it before publishing." |
+| 5 | 55-60초 | 마무리 | "Thank you for reviewing our API usage demonstration." |
+
+---
+
+## ⚠️ 보안 주의사항
+
+### 반드시 블러 처리할 것
+- [ ] OAuth2 Access Token / Refresh Token
+- [ ] API 키
+- [ ] 이메일 주소
+- [ ] 채널 ID (선택)
+
+### 보여줘도 되는 것
+- ✅ n8n 워크플로우 구조 (노드 이름)
+- ✅ YouTube Upload 노드 설정 (토큰 제외)
+- ✅ 업로드 성공 메시지
+- ✅ YouTube Studio 영상 목록
+
+---
+
+## 녹화 순서
+
+### 1️⃣ 사전 준비
+1. n8n 워크플로우 열어두기 (https://autoshort.site)
+2. YouTube Upload 노드 확대 준비
+3. YouTube Studio 탭 미리 로드
+4. 테스트 영상 1개 준비 (이미 생성된 것)
+
+### 2️⃣ 화면 녹화 (무음, 60초)
+1. 화면 녹화 시작 (OBS 또는 Windows Game Bar)
+2. YouTube 채널 보여주기 (5초)
+3. n8n 탭으로 이동 → 워크플로우 전체 보여주기 (5초)
+4. YouTube Upload 노드 클릭 → 설정 보여주기 (10초)
+5. 워크플로우 실행 (Execute Workflow 클릭) (5초)
+6. 업로드 완료 대기 → 성공 메시지 (10초)
+7. YouTube Studio 탭 이동 → 업로드된 영상 확인 (10초)
+8. 영상 상세 페이지 보여주기 (10초)
+9. 녹화 종료
+
+### 3️⃣ TTS 나레이션 생성
+- ElevenLabs 사용 (영어)
+- 스크립트: 아래 참조
+
+### 4️⃣ 영상 편집 (CapCut)
+1. 화면 녹화 + TTS 합성
+2. 민감 정보 블러 처리
+3. 자막 추가 (선택)
+4. BGM 추가 (선택, 볼륨 낮게)
+
+### 5️⃣ 제출
+1. Google Drive 업로드
+2. 이메일 회신
+
+---
+
+## TTS 스크립트 (영어)
+
+```
+Hello, this is a technical demonstration of our YouTube API usage.
+
+This is our YouTube channel where we publish educational lifestyle content for Korean seniors.
+
+We use the YouTube Data API through our automation platform.
+Here you can see the YouTube upload node configuration.
+
+Now I'll demonstrate the actual upload process.
+The workflow fetches the video file and calls the YouTube Data API to upload it.
+
+As you can see, the upload was successful.
+
+In YouTube Studio, you can see the video is now in our channel.
+Our team reviews each video before making it public.
+
+This concludes our API usage demonstration.
+Thank you.
+```
+
+---
+
+## 이메일 회신 템플릿
+
+```
+Subject: RE: YouTube API Services Review - Additional Screencast
+
+Hello YouTube API Team,
+
+Thank you for your guidance.
+
+I have prepared an additional screencast demonstrating the technical implementation of our YouTube API usage.
+
+📹 VIDEO LINK
+[Google Drive URL]
+Duration: 60 seconds
+
+This video shows:
+1. Our automation platform calling the YouTube Data API
+2. The actual video upload process
+3. Upload confirmation in YouTube Studio
+
+Please let me know if you need any additional information.
+
+Best regards,
+Se Hyung Koh
+Project: Short Up (short-up-479502)
+```
+
+---
+
+## 마감
+
+- **YouTube 요청 기한**: 영업일 기준 7일 (2026-01-24 예상)
+- **목표 제출일**: 2026-01-17 (금)
+
+---
+
+## 검증 계획
+
+### 영상 품질 체크 (대표님 수동 확인)
+1. [ ] 민감 정보(API 키, 토큰) 블러 처리 완료?
+2. [ ] TTS 음성 명확히 들림?
+3. [ ] 업로드 과정이 충분히 보임?
+4. [ ] YouTube Studio에서 영상 확인 가능?
+5. [ ] 60초 내외 길이?
+
+### 제출 전 최종 체크
+1. [ ] Google Drive 링크 공유 설정 완료?
+2. [ ] 이메일 본문 검토 완료?

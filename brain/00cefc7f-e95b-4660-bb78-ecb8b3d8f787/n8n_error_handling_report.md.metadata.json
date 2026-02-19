@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_OTHER",
+  "summary": "n8n 자동 에러 복구 시스템 현황 분석 보고서. 현재 구현 상태, 미구현 기능(Node-level Retry), 구현 계획 포함.",
+  "updatedAt": "2026-01-15T02:24:59.472753100Z"
+}

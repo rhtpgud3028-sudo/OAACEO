@@ -1,0 +1,281 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © ICT Trading Strategy V2 - "KSH's Personal ICT Strategy"
+// 핵심: 최소 2개 근거 + 대추세 분석 필수 / 미충족 시 진입 금지
+
+//@version=5
+strategy("ICT Strategy V2 - KSH", overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.percent, commission_value=0.04, slippage=1, pyramiding=0, margin_long=100/58, margin_short=100/58)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 전략 설정
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_strategy = "═══ 전략 설정 ═══"
+leverage = input.float(58.0, "Leverage (x)", minval=1.0, maxval=125.0, step=1.0, group=grp_strategy)
+use_sl = input.bool(true, "Use Stop Loss", group=grp_strategy)
+use_tp = input.bool(true, "Use Take Profit", group=grp_strategy)
+sl_percent = input.float(2.0, "Stop Loss %", minval=0.1, maxval=10.0, step=0.1, group=grp_strategy)
+tp1_percent = input.float(2.0, "TP1 % (30%)", minval=0.1, maxval=20.0, step=0.1, group=grp_strategy)
+tp2_percent = input.float(4.0, "TP2 % (40%)", minval=0.1, maxval=20.0, step=0.1, group=grp_strategy)
+tp3_percent = input.float(6.0, "TP3 % (30%)", minval=0.1, maxval=20.0, step=0.1, group=grp_strategy)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 핵심 설정
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_core = "═══ 핵심 설정 ═══"
+min_confirmations = input.int(2, "최소 근거 개수", minval=1, maxval=5, group=grp_core)
+require_htf_trend = input.bool(true, "HTF 추세 확인 필수", group=grp_core)
+require_fvg = input.bool(true, "FVG 필수 (OB 유효조건)", group=grp_core)
+require_bos_choch = input.bool(true, "BOS/CHoCH 필수", group=grp_core)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HTF 설정 (1D)
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_htf = "═══ HTF 대추세 (1D) ═══"
+htf_tf = input.timeframe("D", "HTF Timeframe", group=grp_htf)
+htf_lookback = input.int(20, "추세 판단 기간", minval=5, maxval=50, group=grp_htf)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Killzone (AMD) 설정
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_killzone = "═══ Killzone (AMD) ═══"
+use_killzone_filter = input.bool(true, "Killzone 필터 사용", group=grp_killzone)
+asia_start = input.int(1, "Asia Start (UTC)", minval=0, maxval=23, group=grp_killzone)
+asia_end = input.int(5, "Asia End (UTC)", minval=0, maxval=23, group=grp_killzone)
+london_start = input.int(7, "London Start (UTC)", minval=0, maxval=23, group=grp_killzone)
+london_end = input.int(10, "London End (UTC)", minval=0, maxval=23, group=grp_killzone)
+ny_start = input.int(13, "NY Start (UTC)", minval=0, maxval=23, group=grp_killzone)
+ny_end = input.int(17, "NY End (UTC)", minval=0, maxval=23, group=grp_killzone)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 시각화 설정
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_visual = "═══ 시각화 ═══"
+show_ob = input.bool(true, "OB 표시", group=grp_visual)
+show_fvg = input.bool(true, "FVG 표시", group=grp_visual)
+show_signals = input.bool(true, "진입 시그널 표시", group=grp_visual)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 변수 초기화
+// ═══════════════════════════════════════════════════════════════════════════════
+var int htf_trend = 0
+var int confirmation_count = 0
+
+// Swing 변수
+var float last_swing_high = na
+var float last_swing_low = na
+pivot_len = 3
+pivot_high_val = ta.pivothigh(high, pivot_len, pivot_len)
+pivot_low_val = ta.pivotlow(low, pivot_len, pivot_len)
+
+if not na(pivot_high_val)
+    last_swing_high := pivot_high_val
+if not na(pivot_low_val)
+    last_swing_low := pivot_low_val
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HTF 추세 분석 (1D)
+// ═══════════════════════════════════════════════════════════════════════════════
+[htf_h, htf_l, htf_c, htf_o] = request.security(syminfo.tickerid, htf_tf, [high, low, close, open])
+
+htf_highest = ta.highest(htf_h, htf_lookback)
+htf_lowest = ta.lowest(htf_l, htf_lookback)
+htf_mid = (htf_highest + htf_lowest) / 2
+
+htf_bullish = htf_c > htf_mid and htf_c > htf_c[1] and htf_c[1] > htf_c[2]
+htf_bearish = htf_c < htf_mid and htf_c < htf_c[1] and htf_c[1] < htf_c[2]
+
+htf_trend := htf_bullish ? 1 : htf_bearish ? -1 : 0
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Killzone (AMD) 감지
+// ═══════════════════════════════════════════════════════════════════════════════
+current_hour = hour(time, "UTC")
+is_asia = current_hour >= asia_start and current_hour < asia_end
+is_london = current_hour >= london_start and current_hour < london_end
+is_ny = current_hour >= ny_start and current_hour < ny_end
+is_killzone = is_asia or is_london or is_ny
+
+killzone_filter = use_killzone_filter ? is_killzone : true
+
+// 배경색
+bgcolor(is_asia ? color.new(color.gray, 93) : na)
+bgcolor(is_london ? color.new(color.orange, 93) : na)
+bgcolor(is_ny ? color.new(color.blue, 93) : na)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BOS / CHoCH 감지
+// ═══════════════════════════════════════════════════════════════════════════════
+bos_bull = close > nz(last_swing_high, high) and htf_trend == 1
+bos_bear = close < nz(last_swing_low, low) and htf_trend == -1
+choch_bull = close > nz(last_swing_high, high) and htf_trend <= 0
+choch_bear = close < nz(last_swing_low, low) and htf_trend >= 0
+
+bos_detected = bos_bull or bos_bear
+choch_detected = choch_bull or choch_bear
+structure_break_recent = ta.barssince(bos_detected or choch_detected) < 10
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FVG 감지
+// ═══════════════════════════════════════════════════════════════════════════════
+bull_fvg_raw = low > high[2]
+bear_fvg_raw = high < low[2]
+bull_fvg = bull_fvg_raw and structure_break_recent
+bear_fvg = bear_fvg_raw and structure_break_recent
+fvg_detected = bull_fvg or bear_fvg
+
+// FVG 표시
+if show_fvg and bull_fvg
+    box.new(bar_index - 1, low, bar_index + 20, high[2], bgcolor=color.new(color.teal, 75), border_color=color.teal)
+if show_fvg and bear_fvg
+    box.new(bar_index - 1, low[2], bar_index + 20, high, bgcolor=color.new(color.teal, 75), border_color=color.teal)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// OB 감지
+// ═══════════════════════════════════════════════════════════════════════════════
+atr_val = ta.atr(14)
+
+bull_imbalance = close > open and (close - open) > atr_val * 1.5
+bear_imbalance = close < open and (open - close) > atr_val * 1.5
+
+bull_ob_candle = close[1] < open[1] and bull_imbalance
+bear_ob_candle = close[1] > open[1] and bear_imbalance
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 근거 카운터
+// ═══════════════════════════════════════════════════════════════════════════════
+confirmation_count := 0
+
+if htf_trend != 0
+    confirmation_count += 1
+if bos_detected or choch_detected or structure_break_recent
+    confirmation_count += 1
+if fvg_detected or bull_fvg or bear_fvg
+    confirmation_count += 1
+if is_killzone
+    confirmation_count += 1
+if bull_imbalance or bear_imbalance
+    confirmation_count += 1
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 인걸핑 캔들 감지
+// ═══════════════════════════════════════════════════════════════════════════════
+bull_engulfing = close > open and close[1] < open[1] and close > open[1] and open < close[1]
+bear_engulfing = close < open and close[1] > open[1] and close < open[1] and open > close[1]
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 진입 조건 (최소 근거 충족 필수)
+// ═══════════════════════════════════════════════════════════════════════════════
+// 기본 조건
+htf_long_ok = require_htf_trend ? htf_trend >= 0 : true
+htf_short_ok = require_htf_trend ? htf_trend <= 0 : true
+fvg_long_ok = require_fvg ? (bull_fvg or ta.barssince(bull_fvg_raw) < 5) : true
+fvg_short_ok = require_fvg ? (bear_fvg or ta.barssince(bear_fvg_raw) < 5) : true
+bos_ok = require_bos_choch ? structure_break_recent : true
+
+// 진입 신호
+long_signal = confirmation_count >= min_confirmations and htf_long_ok and fvg_long_ok and bos_ok and (bull_engulfing or (bull_ob_candle and bull_fvg)) and killzone_filter and strategy.position_size == 0
+
+short_signal = confirmation_count >= min_confirmations and htf_short_ok and fvg_short_ok and bos_ok and (bear_engulfing or (bear_ob_candle and bear_fvg)) and killzone_filter and strategy.position_size == 0
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// OB 표시 (조건 충족 시에만)
+// ═══════════════════════════════════════════════════════════════════════════════
+valid_bull_ob = bull_ob_candle and confirmation_count >= min_confirmations and htf_long_ok
+valid_bear_ob = bear_ob_candle and confirmation_count >= min_confirmations and htf_short_ok
+
+if show_ob and valid_bull_ob
+    box.new(bar_index - 1, high[1], bar_index + 50, low[1], bgcolor=color.new(color.yellow, 70), border_color=color.yellow)
+if show_ob and valid_bear_ob
+    box.new(bar_index - 1, high[1], bar_index + 50, low[1], bgcolor=color.new(color.yellow, 70), border_color=color.yellow)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 전략 실행
+// ═══════════════════════════════════════════════════════════════════════════════
+if long_signal
+    strategy.entry("Long", strategy.long)
+    
+    sl = close * (1 - sl_percent / 100)
+    tp1 = close * (1 + tp1_percent / 100)
+    tp2 = close * (1 + tp2_percent / 100)
+    tp3 = close * (1 + tp3_percent / 100)
+    
+    if use_sl
+        strategy.exit("Long TP1", "Long", qty_percent=30, limit=tp1, stop=sl)
+        strategy.exit("Long TP2", "Long", qty_percent=40, limit=tp2, stop=sl)
+        strategy.exit("Long TP3", "Long", qty_percent=30, limit=tp3, stop=sl)
+    else
+        strategy.exit("Long TP1", "Long", qty_percent=30, limit=tp1)
+        strategy.exit("Long TP2", "Long", qty_percent=40, limit=tp2)
+        strategy.exit("Long TP3", "Long", qty_percent=30, limit=tp3)
+    
+    if show_signals
+        label.new(bar_index, low, "▲ LONG\n" + str.tostring(confirmation_count) + "개 근거", style=label.style_label_up, color=color.green, textcolor=color.white, size=size.small)
+
+if short_signal
+    strategy.entry("Short", strategy.short)
+    
+    sl = close * (1 + sl_percent / 100)
+    tp1 = close * (1 - tp1_percent / 100)
+    tp2 = close * (1 - tp2_percent / 100)
+    tp3 = close * (1 - tp3_percent / 100)
+    
+    if use_sl
+        strategy.exit("Short TP1", "Short", qty_percent=30, limit=tp1, stop=sl)
+        strategy.exit("Short TP2", "Short", qty_percent=40, limit=tp2, stop=sl)
+        strategy.exit("Short TP3", "Short", qty_percent=30, limit=tp3, stop=sl)
+    else
+        strategy.exit("Short TP1", "Short", qty_percent=30, limit=tp1)
+        strategy.exit("Short TP2", "Short", qty_percent=40, limit=tp2)
+        strategy.exit("Short TP3", "Short", qty_percent=30, limit=tp3)
+    
+    if show_signals
+        label.new(bar_index, high, "▼ SHORT\n" + str.tostring(confirmation_count) + "개 근거", style=label.style_label_down, color=color.red, textcolor=color.white, size=size.small)
+
+// 반대 신호 시 청산
+if strategy.position_size > 0 and short_signal
+    strategy.close("Long")
+if strategy.position_size < 0 and long_signal
+    strategy.close("Short")
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 주요 지지/저항 표시
+// ═══════════════════════════════════════════════════════════════════════════════
+plot(htf_highest, "HTF Resistance", color=color.new(color.red, 50), linewidth=2)
+plot(htf_lowest, "HTF Support", color=color.new(color.green, 50), linewidth=2)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 상태 테이블
+// ═══════════════════════════════════════════════════════════════════════════════
+var table info_table = table.new(position.top_right, 2, 5, bgcolor=color.new(color.black, 80), border_width=1)
+
+if barstate.islast
+    table.cell(info_table, 0, 0, "HTF TREND", text_color=color.white, text_size=size.small)
+    trend_text = htf_trend == 1 ? "▲ BULL" : htf_trend == -1 ? "▼ BEAR" : "◆ SIDE"
+    trend_color = htf_trend == 1 ? color.green : htf_trend == -1 ? color.red : color.gray
+    table.cell(info_table, 1, 0, trend_text, text_color=trend_color, text_size=size.small)
+    
+    table.cell(info_table, 0, 1, "KILLZONE", text_color=color.white, text_size=size.small)
+    kz_text = is_asia ? "A" : is_london ? "M" : is_ny ? "D" : "-"
+    table.cell(info_table, 1, 1, kz_text, text_color=is_killzone ? color.yellow : color.gray, text_size=size.small)
+    
+    table.cell(info_table, 0, 2, "CONFIRMATIONS", text_color=color.white, text_size=size.small)
+    conf_color = confirmation_count >= 3 ? color.green : confirmation_count >= 2 ? color.yellow : color.red
+    table.cell(info_table, 1, 2, str.tostring(confirmation_count) + "/5", text_color=conf_color, text_size=size.small)
+    
+    table.cell(info_table, 0, 3, "POSITION", text_color=color.white, text_size=size.small)
+    pos_text = strategy.position_size > 0 ? "LONG" : strategy.position_size < 0 ? "SHORT" : "FLAT"
+    pos_color = strategy.position_size > 0 ? color.green : strategy.position_size < 0 ? color.red : color.gray
+    table.cell(info_table, 1, 3, pos_text, text_color=pos_color, text_size=size.small)
+    
+    table.cell(info_table, 0, 4, "P&L", text_color=color.white, text_size=size.small)
+    pnl_pct = strategy.netprofit / strategy.initial_capital * 100
+    table.cell(info_table, 1, 4, str.tostring(pnl_pct, "#.##") + "%", text_color=pnl_pct > 0 ? color.green : color.red, text_size=size.small)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 알림
+// ═══════════════════════════════════════════════════════════════════════════════
+alertcondition(long_signal, "Long Entry", '{"signal":"LONG","price":"{{close}}"}')
+alertcondition(short_signal, "Short Entry", '{"signal":"SHORT","price":"{{close}}"}')
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// END OF STRATEGY - ICT V2 KSH
+// ═══════════════════════════════════════════════════════════════════════════════

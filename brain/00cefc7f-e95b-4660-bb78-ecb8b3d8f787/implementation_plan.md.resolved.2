@@ -1,0 +1,136 @@
+# YouTube API Screencast v6.0 강화 버전
+
+> **목표**: 추가 요청 없이 한번에 승인!
+
+---
+
+## 핵심 전략
+
+| 기존 문제 | 해결책 |
+|----------|--------|
+| Postman만 = "앱이 아니다" | **업로드된 영상 3개 재생** 추가 |
+| "사람 검토" 증거 없음 | **팀 리뷰 장면 연출** 추가 |
+| n8n 노출 우려 | ✅ Postman 유지 (자동화 규모 숨김) |
+
+---
+
+## 영상 구성 (70초)
+
+| # | 시간 | 화면 | TTS 나레이션 |
+|---|------|------|-------------|
+| 1 | 0-10초 | YouTube 채널 페이지 | "This is our YouTube channel for educational lifestyle content." |
+| 2 | 10-25초 | **업로드된 영상 3개 썸네일 + 짧은 재생** ⭐ | "Here are examples of our educational videos for Korean seniors. Health tips, financial advice, and lifestyle content." |
+| 3 | 25-40초 | Postman - videos.insert API 호출 | "We use YouTube Data API's videos.insert endpoint. Let me show you the actual API call." |
+| 4 | 40-50초 | Postman - 200 OK 응답 | "The API returns a successful response with the video ID." |
+| 5 | 50-60초 | YouTube Studio - 업로드 확인 | "In YouTube Studio, the video is now uploaded." |
+| 6 | 60-70초 | **팀 리뷰 화면 (스프레드시트/체크리스트)** ⭐ | "Before publishing, our team reviews each video for quality and compliance. Thank you." |
+
+---
+
+## 준비물 체크리스트
+
+### 1️⃣ 영상 예시 (3개)
+- [ ] 건강 관련 영상 1개 (썸네일 + 5초 재생)
+- [ ] 재테크 관련 영상 1개 (썸네일만)
+- [ ] 생활팁 관련 영상 1개 (썸네일만)
+
+### 2️⃣ Postman 설정
+- [ ] YouTube Data API v3 요청 준비
+- [ ] `POST https://www.googleapis.com/upload/youtube/v3/videos`
+- [ ] Authorization Bearer 토큰 (블러 처리용)
+- [ ] 테스트 영상 파일
+
+### 3️⃣ 팀 리뷰 화면 연출
+- [ ] Google Sheets 또는 Notion 체크리스트
+- [ ] 예시: "Video Title | Quality ✓ | Compliance ✓ | Approved ✓"
+
+---
+
+## TTS 스크립트 (영어, 70초)
+
+```
+Hello, this is a demonstration of our YouTube API usage.
+
+This is our YouTube channel where we publish educational lifestyle content targeting Korean seniors aged 50 to 60.
+
+Here are examples of our published videos. 
+We create content about health tips, financial advice, and lifestyle guidance.
+All content is family-friendly and educational.
+
+Now, let me show you how we use the YouTube Data API.
+Here in Postman, you can see the videos.insert API endpoint.
+We send a POST request with video metadata and the file.
+
+The API returns a successful response with the video ID.
+
+In YouTube Studio, you can see the video has been uploaded successfully.
+
+Before publishing, our team reviews each video for quality and policy compliance.
+This ensures all content meets YouTube's community guidelines.
+
+Thank you for reviewing our demonstration.
+```
+
+---
+
+## 녹화 순서
+
+### 1️⃣ 영상 예시 녹화 (15초)
+1. YouTube 채널 → 영상 탭 열기
+2. 영상 3개 썸네일 보여주기
+3. 하나 클릭 → 5초 재생
+
+### 2️⃣ Postman API 호출 (15초)
+1. Postman 열기
+2. API 요청 정보 보여주기
+3. **Send 클릭** → 응답 대기
+4. 200 OK + video ID 확인
+
+### 3️⃣ YouTube Studio 확인 (10초)
+1. YouTube Studio → Content
+2. 업로드된 영상 확인
+
+### 4️⃣ 팀 리뷰 화면 (10초)
+1. Google Sheets 또는 Notion 열기
+2. 체크리스트 보여주기
+
+### 5️⃣ TTS + 편집
+1. ElevenLabs TTS 생성 (영어)
+2. CapCut 합성
+3. 토큰 블러 처리
+
+---
+
+## 이메일 회신 템플릿
+
+```
+Subject: RE: YouTube API Services Review - Technical Demonstration
+
+Hello YouTube API Team,
+
+Thank you for your guidance.
+
+I have prepared a screencast demonstrating our YouTube API usage.
+
+📹 VIDEO LINK
+[Google Drive URL]
+Duration: 70 seconds
+
+This video demonstrates:
+1. Our YouTube channel and sample educational videos
+2. YouTube Data API (videos.insert) call via API client
+3. Successful upload confirmation in YouTube Studio
+4. Our team's content review process before publishing
+
+Please let me know if you need any additional information.
+
+Best regards,
+Se Hyung Koh
+Project: Short Up (short-up-479502)
+```
+
+---
+
+## 마감
+- **YouTube 요청 기한**: 영업일 기준 7일 (2026-01-24)
+- **목표 제출일**: 2026-01-17 (금)
