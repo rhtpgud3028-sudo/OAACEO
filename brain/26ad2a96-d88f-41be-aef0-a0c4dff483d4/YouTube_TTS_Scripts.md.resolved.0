@@ -1,0 +1,165 @@
+# YouTube API Quota Screencast - TTS Scripts
+
+> **사용법**: 각 섹션을 OpenAI TTS API에 입력하여 음성 파일 생성
+> **권장 Voice**: `alloy` 또는 `onyx` (전문적인 느낌)
+> **총 길이**: 약 5분
+
+---
+
+## SECTION 1: Introduction (30초)
+```
+Hello. I am the developer of AI Shorts Factory.
+
+Thank you for reviewing our YouTube API quota increase request.
+
+In this video, I will demonstrate our complete workflow, showing exactly how we use the YouTube Data API to upload AI-generated educational content.
+```
+
+---
+
+## SECTION 2: Project Overview (30초)
+```
+This is our automation platform, n8n, self-hosted on our server at autoshort.site.
+
+Our service creates short-form educational videos targeting Korean adults aged 50 to 60.
+
+We cover topics like health tips, financial advice, and lifestyle content. All content is family-friendly and educational.
+```
+
+---
+
+## SECTION 3: Content Generation (60초)
+```
+Here is our content generation flow.
+
+First, we fetch trending topics relevant to our audience using YouTube Trends API.
+
+Then, GPT-4o generates the script in Korean, optimized for our target demographic.
+
+Each script is approximately 300 characters, designed for a 50-second video.
+
+As you can see, the entire process is automated through our n8n workflow.
+```
+
+---
+
+## SECTION 4: Media Generation (30초)
+```
+Next, we generate visual content.
+
+DALL-E 3 creates 8 educational images per video.
+
+Kling AI generates the intro and outro video clips.
+
+All content is 100 percent AI-generated and completely original. We do not use any copyrighted material.
+```
+
+---
+
+## SECTION 5: Video Composition (30초)
+```
+The generated media is then composed into a final video using Shotstack API.
+
+We add Korean subtitles, background music, and text-to-speech narration.
+
+The final video is 50 seconds long in 9 by 16 vertical format, perfect for YouTube Shorts.
+```
+
+---
+
+## SECTION 6: YouTube API Upload (60초) ⭐ 핵심!
+```
+Now, the key part. We use the YouTube Data API to upload the video.
+
+We only use these API endpoints:
+First, videos.insert to upload the video file.
+Second, videos.update to set the title, description, and tags.
+
+We do not scrape or download any content.
+We do not collect any user data.
+We only upload to our own managed channels.
+
+This workflow is fully compliant with YouTube's Terms of Service.
+```
+
+---
+
+## SECTION 7: Result Verification (30초)
+```
+Here is the result in YouTube Studio.
+
+You can see the video was successfully uploaded.
+
+The title, description, and tags are set correctly.
+
+The video is now live on our channel, providing valuable educational content to our Korean senior audience.
+```
+
+---
+
+## SECTION 8: Quota Justification (30초)
+```
+Here is why we need increased quota.
+
+We manage 20 YouTube channels.
+Each channel uploads 2 videos per day.
+That is 40 videos daily.
+
+Each upload uses approximately 1,600 API units.
+Our total daily need is about 64,000 units.
+
+The current quota of 10,000 units is insufficient.
+We are requesting 100,000 units per day.
+```
+
+---
+
+## SECTION 9: Closing (15초)
+```
+Thank you for watching.
+
+We are fully committed to complying with YouTube's Terms of Service and Developer Policies.
+
+If you have any questions, please contact us.
+
+Thank you.
+```
+
+---
+
+# 🔧 OpenAI TTS 생성 방법
+
+## Python 코드 (참고용)
+```python
+from openai import OpenAI
+client = OpenAI()
+
+scripts = {
+    "01_intro": "Hello. I am the developer of AI Shorts Factory...",
+    "02_overview": "This is our automation platform...",
+    # ... 각 섹션 추가
+}
+
+for name, text in scripts.items():
+    response = client.audio.speech.create(
+        model="tts-1-hd",
+        voice="onyx",  # 전문적인 남성 목소리
+        input=text
+    )
+    response.stream_to_file(f"{name}.mp3")
+```
+
+## n8n에서 생성 (대안)
+1. OpenAI 노드 → Audio → Create Speech
+2. Voice: `onyx` 또는 `alloy`
+3. 각 섹션별로 노드 실행 → MP3 다운로드
+
+---
+
+# 📋 녹화 + 합성 순서
+
+1. ⬜ 각 섹션 TTS 음성 파일 생성 (9개)
+2. ⬜ n8n 화면 녹화 (무음, 5분)
+3. ⬜ CapCut/편집기에서 음성 + 화면 합성
+4. ⬜ 최종 영상 YouTube 비공개 업로드
+5. ⬜ 링크 이메일 답신에 첨부

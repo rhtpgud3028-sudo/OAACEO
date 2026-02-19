@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "v20.30 채널별 베리에이션 구현 계획. YouTube 알고리즘 회피를 위한 5가지 베리에이션 (전환효과, 자막 스타일, BGM, 폰트, 영상 구조) 설계. 절대 룰 (동적 싱크, 자막 잘림 방지) 보호.",
+  "updatedAt": "2026-02-04T08:31:39.343730Z"
+}

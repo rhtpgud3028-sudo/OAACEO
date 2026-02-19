@@ -1,0 +1,510 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © ICT Trading Strategy for KSH - AI Auto Trading System
+// Based on user's custom ICT strategy settings
+// STRATEGY VERSION - 백테스팅 및 자동매매 가능
+
+//@version=5
+strategy("ICT Trading Strategy for KSH", overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.percent, commission_value=0.04, slippage=1, pyramiding=0, calc_on_every_tick=false, margin_long=100/58, margin_short=100/58)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 전략 설정 (Strategy Settings)
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_strategy = "═══ 전략 설정 (Strategy Settings) ═══"
+leverage = input.float(58.0, "Leverage (x)", minval=1.0, maxval=125.0, step=1.0, group=grp_strategy)
+use_sl = input.bool(true, "Use Stop Loss", group=grp_strategy)
+use_tp = input.bool(true, "Use Take Profit", group=grp_strategy)
+sl_percent = input.float(2.0, "Stop Loss %", minval=0.1, maxval=10.0, step=0.1, group=grp_strategy)
+tp_percent = input.float(4.0, "Take Profit %", minval=0.1, maxval=20.0, step=0.1, group=grp_strategy)
+rr_ratio = input.float(2.0, "Risk:Reward Ratio", minval=1.0, maxval=10.0, step=0.5, group=grp_strategy)
+
+// 레버리지 기반 청산 가격 계산
+liquidation_long = strategy.position_avg_price * (1 - 0.9 / leverage)
+liquidation_short = strategy.position_avg_price * (1 + 0.9 / leverage)
+
+// 진입 조건 설정
+grp_entry = "═══ 진입 조건 (Entry Conditions) ═══"
+entry_on_bos = input.bool(true, "Entry on BOS", group=grp_entry)
+entry_on_choch = input.bool(true, "Entry on CHoCH", group=grp_entry)
+entry_on_ob_touch = input.bool(false, "Entry on OB Touch", group=grp_entry)
+entry_on_fvg_touch = input.bool(false, "Entry on FVG Touch", group=grp_entry)
+entry_on_ema_cross = input.bool(true, "Entry on EMA Cross", group=grp_entry)
+require_rsi_filter = input.bool(false, "Require RSI Filter", group=grp_entry)
+require_trend_filter = input.bool(false, "Require Trend Filter", group=grp_entry)
+
+// 시간 필터
+grp_time = "═══ 시간 필터 (Time Filter) ═══"
+use_time_filter = input.bool(false, "Use Time Filter", group=grp_time)
+start_hour = input.int(9, "Start Hour (UTC)", minval=0, maxval=23, group=grp_time)
+end_hour = input.int(21, "End Hour (UTC)", minval=0, maxval=23, group=grp_time)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 시장 구조 설정 (Market Structure)
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_structure = "═══ 시장 구조 (Market Structure) ═══"
+pivot_left = input.int(3, "Pivot Left Bars", minval=1, group=grp_structure)
+pivot_right = input.int(3, "Pivot Right Bars", minval=1, group=grp_structure)
+show_bos = input.bool(true, "Show BOS", group=grp_structure)
+show_choch = input.bool(true, "Show CHoCH", group=grp_structure)
+show_swing_points = input.bool(false, "Show Swing Points (HH/LL)", group=grp_structure)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Order Block 설정
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_ob = "═══ Order Block (OB) ═══"
+show_ob = input.bool(true, "Show Order Blocks", group=grp_ob)
+ob_max_bars = input.int(500, "Max Bars Back for OB", minval=100, maxval=1000, group=grp_ob)
+bull_ob_color = input.color(color.new(color.green, 70), "Bullish OB Color", group=grp_ob)
+bear_ob_color = input.color(color.new(color.red, 70), "Bearish OB Color", group=grp_ob)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Fair Value Gap 설정
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_fvg = "═══ Fair Value Gap (FVG) ═══"
+show_fvg = input.bool(true, "Show FVG", group=grp_fvg)
+fvg_max_bars = input.int(1000, "Max Bars Back for FVG", minval=100, maxval=2000, group=grp_fvg)
+bull_fvg_color = input.color(color.new(#FF69B4, 70), "Bullish FVG Color", group=grp_fvg)
+bear_fvg_color = input.color(color.new(#FF69B4, 70), "Bearish FVG Color", group=grp_fvg)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CE Line 설정
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_ce = "═══ CE Line (50% Level) ═══"
+show_ce_line = input.bool(true, "Show CE Lines", group=grp_ce)
+ce_line_color = input.color(color.new(color.yellow, 30), "CE Line Color", group=grp_ce)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MTF OB 설정
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_mtf = "═══ Multi-Timeframe OB ═══"
+show_mtf_ob = input.bool(true, "Show MTF Order Blocks", group=grp_mtf)
+mtf_ob_tf = input.timeframe("D", "MTF OB Timeframe", group=grp_mtf)
+mtf_ob_color = input.color(color.new(color.yellow, 60), "MTF OB Color (1D)", group=grp_mtf)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 보조 지표 설정
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_aux = "═══ 보조 지표 (Auxiliary) ═══"
+show_bb_bands = input.bool(true, "Show Bollinger Bands", group=grp_aux)
+bb_length_short = input.int(20, "BB Short Length", group=grp_aux)
+bb_std_short = input.float(2.0, "BB Short StdDev", group=grp_aux)
+bb_length_long = input.int(200, "BB Long Length", group=grp_aux)
+bb_std_long = input.float(3.0, "BB Long StdDev", group=grp_aux)
+show_ichimoku_chikou = input.bool(true, "Show Chikou Span", group=grp_aux)
+chikou_length = input.int(26, "Chikou Span Length", group=grp_aux)
+
+// RSI 설정
+rsi_length = input.int(14, "RSI Length", group=grp_aux)
+rsi_overbought = input.int(60, "RSI Overbought", group=grp_aux)
+rsi_oversold = input.int(40, "RSI Oversold", group=grp_aux)
+
+// EMA 설정
+ema_fast_len = input.int(9, "EMA Fast Length", group=grp_aux)
+ema_slow_len = input.int(21, "EMA Slow Length", group=grp_aux)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 변수 초기화
+// ═══════════════════════════════════════════════════════════════════════════════
+var float[] swing_highs = array.new_float()
+var float[] swing_lows = array.new_float()
+var int[] swing_high_bars = array.new_int()
+var int[] swing_low_bars = array.new_int()
+
+var box[] ob_boxes = array.new_box()
+var box[] fvg_boxes = array.new_box()
+var line[] ce_lines = array.new_line()
+
+var float last_hh = na
+var float last_ll = na
+var float last_hl = na
+var float last_lh = na
+var int trend = 0
+
+// OB 추적 변수
+var float last_bull_ob_top = na
+var float last_bull_ob_bottom = na
+var float last_bear_ob_top = na
+var float last_bear_ob_bottom = na
+
+// FVG 추적 변수
+var float last_bull_fvg_top = na
+var float last_bull_fvg_bottom = na
+var float last_bear_fvg_top = na
+var float last_bear_fvg_bottom = na
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 함수 정의
+// ═══════════════════════════════════════════════════════════════════════════════
+pivot_high = ta.pivothigh(high, pivot_left, pivot_right)
+pivot_low = ta.pivotlow(low, pivot_left, pivot_right)
+
+// EMA 계산
+ema_fast = ta.ema(close, ema_fast_len)
+ema_slow = ta.ema(close, ema_slow_len)
+ema_bull_cross = ta.crossover(ema_fast, ema_slow)
+ema_bear_cross = ta.crossunder(ema_fast, ema_slow)
+
+f_is_bos_bull() =>
+    bool result = false
+    if array.size(swing_highs) > 0
+        float last_swing_high = array.get(swing_highs, array.size(swing_highs) - 1)
+        if close > last_swing_high and trend == 1
+            result := true
+    result
+
+f_is_bos_bear() =>
+    bool result = false
+    if array.size(swing_lows) > 0
+        float last_swing_low = array.get(swing_lows, array.size(swing_lows) - 1)
+        if close < last_swing_low and trend == -1
+            result := true
+    result
+
+f_is_choch_bull() =>
+    bool result = false
+    if array.size(swing_highs) > 0 and trend == -1
+        float last_swing_high = array.get(swing_highs, array.size(swing_highs) - 1)
+        if close > last_swing_high
+            result := true
+    result
+
+f_is_choch_bear() =>
+    bool result = false
+    if array.size(swing_lows) > 0 and trend == 1
+        float last_swing_low = array.get(swing_lows, array.size(swing_lows) - 1)
+        if close < last_swing_low
+            result := true
+    result
+
+f_detect_bull_fvg() =>
+    low > high[2]
+
+f_detect_bear_fvg() =>
+    high < low[2]
+
+f_detect_bull_ob() =>
+    close > open and close[1] < open[1] and close > high[1]
+
+f_detect_bear_ob() =>
+    close < open and close[1] > open[1] and close < low[1]
+
+f_calc_ce(float _high, float _low) =>
+    (_high + _low) / 2
+
+// 시간 필터 함수
+f_is_trading_time() =>
+    if use_time_filter
+        current_hour = hour(time, "UTC")
+        current_hour >= start_hour and current_hour <= end_hour
+    else
+        true
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 메인 로직 - 시장 구조
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Swing Points 업데이트
+if not na(pivot_high)
+    array.push(swing_highs, pivot_high)
+    array.push(swing_high_bars, bar_index - pivot_right)
+    if array.size(swing_highs) > 50
+        array.shift(swing_highs)
+        array.shift(swing_high_bars)
+    if array.size(swing_highs) > 1
+        float prev_high = array.get(swing_highs, array.size(swing_highs) - 2)
+        if pivot_high > prev_high
+            last_hh := pivot_high
+            if show_swing_points
+                label.new(bar_index - pivot_right, pivot_high, "HH", style=label.style_label_down, color=color.red, textcolor=color.white, size=size.tiny)
+        else
+            last_lh := pivot_high
+            if show_swing_points
+                label.new(bar_index - pivot_right, pivot_high, "LH", style=label.style_label_down, color=color.orange, textcolor=color.white, size=size.tiny)
+
+if not na(pivot_low)
+    array.push(swing_lows, pivot_low)
+    array.push(swing_low_bars, bar_index - pivot_right)
+    if array.size(swing_lows) > 50
+        array.shift(swing_lows)
+        array.shift(swing_low_bars)
+    if array.size(swing_lows) > 1
+        float prev_low = array.get(swing_lows, array.size(swing_lows) - 2)
+        if pivot_low < prev_low
+            last_ll := pivot_low
+            if show_swing_points
+                label.new(bar_index - pivot_right, pivot_low, "LL", style=label.style_label_up, color=color.green, textcolor=color.white, size=size.tiny)
+        else
+            last_hl := pivot_low
+            if show_swing_points
+                label.new(bar_index - pivot_right, pivot_low, "HL", style=label.style_label_up, color=color.lime, textcolor=color.white, size=size.tiny)
+
+// 추세 판단
+if not na(last_hh) and not na(last_hl)
+    if last_hh > nz(last_hh[1], last_hh) and last_hl > nz(last_hl[1], last_hl)
+        trend := 1
+if not na(last_ll) and not na(last_lh)
+    if last_ll < nz(last_ll[1], last_ll) and last_lh < nz(last_lh[1], last_lh)
+        trend := -1
+
+// BOS/CHoCH 감지
+bos_bull = f_is_bos_bull()
+bos_bear = f_is_bos_bear()
+choch_bull = f_is_choch_bull()
+choch_bear = f_is_choch_bear()
+
+// BOS 라벨
+if show_bos and bos_bull
+    label.new(bar_index, low, "bos", style=label.style_label_up, color=color.green, textcolor=color.white, size=size.tiny)
+if show_bos and bos_bear
+    label.new(bar_index, high, "bos", style=label.style_label_down, color=color.red, textcolor=color.white, size=size.tiny)
+
+// CHoCH 라벨
+if show_choch and choch_bull
+    label.new(bar_index, low, "CHoCH", style=label.style_label_up, color=color.teal, textcolor=color.white, size=size.small)
+    trend := 1
+if show_choch and choch_bear
+    label.new(bar_index, high, "CHoCH", style=label.style_label_down, color=color.maroon, textcolor=color.white, size=size.small)
+    trend := -1
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Order Block 감지 및 표시
+// ═══════════════════════════════════════════════════════════════════════════════
+if show_ob
+    if (bos_bull or choch_bull) and f_detect_bull_ob()
+        ob_box = box.new(bar_index - 1, high[1], bar_index + 20, low[1], bgcolor=bull_ob_color, border_color=color.green, border_width=1)
+        array.push(ob_boxes, ob_box)
+        last_bull_ob_top := high[1]
+        last_bull_ob_bottom := low[1]
+        if show_ce_line
+            ce_level = f_calc_ce(high[1], low[1])
+            ce_ln = line.new(bar_index - 1, ce_level, bar_index + 20, ce_level, color=ce_line_color, style=line.style_dashed, width=1)
+            array.push(ce_lines, ce_ln)
+        label.new(bar_index - 1, low[1], "OB L", style=label.style_label_up, color=color.new(color.green, 50), textcolor=color.white, size=size.tiny)
+    
+    if (bos_bear or choch_bear) and f_detect_bear_ob()
+        ob_box = box.new(bar_index - 1, high[1], bar_index + 20, low[1], bgcolor=bear_ob_color, border_color=color.red, border_width=1)
+        array.push(ob_boxes, ob_box)
+        last_bear_ob_top := high[1]
+        last_bear_ob_bottom := low[1]
+        if show_ce_line
+            ce_level = f_calc_ce(high[1], low[1])
+            ce_ln = line.new(bar_index - 1, ce_level, bar_index + 20, ce_level, color=ce_line_color, style=line.style_dashed, width=1)
+            array.push(ce_lines, ce_ln)
+        label.new(bar_index - 1, high[1], "OB S", style=label.style_label_down, color=color.new(color.red, 50), textcolor=color.white, size=size.tiny)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Fair Value Gap 감지 및 표시
+// ═══════════════════════════════════════════════════════════════════════════════
+if show_fvg
+    if f_detect_bull_fvg()
+        fvg_top = low
+        fvg_bottom = high[2]
+        fvg_box = box.new(bar_index - 1, fvg_top, bar_index + 15, fvg_bottom, bgcolor=bull_fvg_color, border_color=color.green, border_width=1)
+        array.push(fvg_boxes, fvg_box)
+        last_bull_fvg_top := fvg_top
+        last_bull_fvg_bottom := fvg_bottom
+        if show_ce_line
+            ce_level = f_calc_ce(fvg_top, fvg_bottom)
+            ce_ln = line.new(bar_index - 1, ce_level, bar_index + 15, ce_level, color=ce_line_color, style=line.style_dotted, width=1)
+            array.push(ce_lines, ce_ln)
+        label.new(bar_index - 1, fvg_bottom, "FVG", style=label.style_label_up, color=color.new(color.green, 50), textcolor=color.white, size=size.tiny)
+    
+    if f_detect_bear_fvg()
+        fvg_top = low[2]
+        fvg_bottom = high
+        fvg_box = box.new(bar_index - 1, fvg_top, bar_index + 15, fvg_bottom, bgcolor=bear_fvg_color, border_color=color.red, border_width=1)
+        array.push(fvg_boxes, fvg_box)
+        last_bear_fvg_top := fvg_top
+        last_bear_fvg_bottom := fvg_bottom
+        if show_ce_line
+            ce_level = f_calc_ce(fvg_top, fvg_bottom)
+            ce_ln = line.new(bar_index - 1, ce_level, bar_index + 15, ce_level, color=ce_line_color, style=line.style_dotted, width=1)
+            array.push(ce_lines, ce_ln)
+        label.new(bar_index - 1, fvg_top, "FVG", style=label.style_label_down, color=color.new(color.red, 50), textcolor=color.white, size=size.tiny)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Multi-Timeframe OB
+// ═══════════════════════════════════════════════════════════════════════════════
+[htf_open, htf_high, htf_low, htf_close] = request.security(syminfo.tickerid, mtf_ob_tf, [open, high, low, close])
+htf_bullish_ob = htf_close > htf_open and htf_close[1] < htf_open[1] and htf_close > htf_high[1]
+htf_bearish_ob = htf_close < htf_open and htf_close[1] > htf_open[1] and htf_close < htf_low[1]
+
+if show_mtf_ob and htf_bullish_ob
+    label.new(bar_index, htf_low[1], "1D OB L", style=label.style_label_up, color=mtf_ob_color, textcolor=color.black, size=size.small)
+if show_mtf_ob and htf_bearish_ob
+    label.new(bar_index, htf_high[1], "1D OB S", style=label.style_label_down, color=mtf_ob_color, textcolor=color.black, size=size.small)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 보조 지표
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Bollinger Bands
+bb_basis_short = ta.sma(close, bb_length_short)
+bb_dev_short = bb_std_short * ta.stdev(close, bb_length_short)
+bb_upper_short = bb_basis_short + bb_dev_short
+bb_lower_short = bb_basis_short - bb_dev_short
+
+bb_basis_long = ta.sma(close, bb_length_long)
+bb_dev_long = bb_std_long * ta.stdev(close, bb_length_long)
+bb_upper_long = bb_basis_long + bb_dev_long
+bb_lower_long = bb_basis_long - bb_dev_long
+
+plot(show_bb_bands ? bb_basis_short : na, "BB Basis (20)", color=color.yellow, linewidth=1)
+plot(show_bb_bands ? bb_upper_short : na, "BB Upper (20)", color=color.blue, linewidth=1)
+plot(show_bb_bands ? bb_lower_short : na, "BB Lower (20)", color=color.blue, linewidth=1)
+plot(show_bb_bands ? bb_basis_long : na, "BB Basis (200)", color=color.lime, linewidth=2)
+plot(show_bb_bands ? bb_upper_long : na, "BB Upper (200)", color=color.orange, linewidth=2)
+plot(show_bb_bands ? bb_lower_long : na, "BB Lower (200)", color=color.orange, linewidth=2)
+
+// Ichimoku Chikou
+chikou_span = close
+plot(show_ichimoku_chikou ? chikou_span : na, "Chikou Span", color=color.aqua, linewidth=1, offset=-chikou_length)
+
+// EMA 표시
+plot(ema_fast, "EMA Fast", color=color.new(color.lime, 0), linewidth=1)
+plot(ema_slow, "EMA Slow", color=color.new(color.red, 0), linewidth=1)
+
+// RSI & MFI
+rsi_value = ta.rsi(close, rsi_length)
+mfi_value = ta.mfi(hlc3, 14)
+[macd_line, signal_line, hist] = ta.macd(close, 12, 26, 9)
+
+rsi_oversold_cond = rsi_value < rsi_oversold
+rsi_overbought_cond = rsi_value > rsi_overbought
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 진입 조건 (Entry Conditions) - 완화된 버전
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// OB 터치 감지
+bull_ob_touch = not na(last_bull_ob_top) and low <= last_bull_ob_top and high >= last_bull_ob_bottom
+bear_ob_touch = not na(last_bear_ob_top) and low <= last_bear_ob_top and high >= last_bear_ob_bottom
+
+// FVG 터치 감지
+bull_fvg_touch = not na(last_bull_fvg_top) and low <= last_bull_fvg_top and high >= last_bull_fvg_bottom
+bear_fvg_touch = not na(last_bear_fvg_top) and low <= last_bear_fvg_top and high >= last_bear_fvg_bottom
+
+// 롱 진입 조건 (OR 조합)
+long_bos_entry = entry_on_bos and bos_bull
+long_choch_entry = entry_on_choch and choch_bull
+long_ob_entry = entry_on_ob_touch and bull_ob_touch
+long_fvg_entry = entry_on_fvg_touch and bull_fvg_touch
+long_ema_entry = entry_on_ema_cross and ema_bull_cross
+
+// 필터 (옵션)
+long_rsi_filter = require_rsi_filter ? rsi_value < rsi_oversold : true
+long_trend_filter = require_trend_filter ? (trend == 1 or trend == 0) : true
+long_time_filter = f_is_trading_time()
+
+// 최종 롱 조건
+long_condition = (long_bos_entry or long_choch_entry or long_ob_entry or long_fvg_entry or long_ema_entry) and long_rsi_filter and long_trend_filter and long_time_filter
+
+// 숏 진입 조건 (OR 조합)
+short_bos_entry = entry_on_bos and bos_bear
+short_choch_entry = entry_on_choch and choch_bear
+short_ob_entry = entry_on_ob_touch and bear_ob_touch
+short_fvg_entry = entry_on_fvg_touch and bear_fvg_touch
+short_ema_entry = entry_on_ema_cross and ema_bear_cross
+
+// 필터 (옵션)
+short_rsi_filter = require_rsi_filter ? rsi_value > rsi_overbought : true
+short_trend_filter = require_trend_filter ? (trend == -1 or trend == 0) : true
+short_time_filter = f_is_trading_time()
+
+// 최종 숏 조건
+short_condition = (short_bos_entry or short_choch_entry or short_ob_entry or short_fvg_entry or short_ema_entry) and short_rsi_filter and short_trend_filter and short_time_filter
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 전략 실행 (Strategy Execution)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// 롱 진입
+if long_condition and strategy.position_size == 0
+    strategy.entry("Long", strategy.long)
+    
+    // 스탑로스 & 테이크프로핏 설정
+    if use_sl and use_tp
+        stop_price = close * (1 - sl_percent / 100)
+        take_price = close * (1 + tp_percent / 100)
+        strategy.exit("Long Exit", "Long", stop=stop_price, limit=take_price)
+    else if use_sl
+        stop_price = close * (1 - sl_percent / 100)
+        strategy.exit("Long SL", "Long", stop=stop_price)
+    else if use_tp
+        take_price = close * (1 + tp_percent / 100)
+        strategy.exit("Long TP", "Long", limit=take_price)
+
+// 숏 진입
+if short_condition and strategy.position_size == 0
+    strategy.entry("Short", strategy.short)
+    
+    // 스탑로스 & 테이크프로핏 설정
+    if use_sl and use_tp
+        stop_price = close * (1 + sl_percent / 100)
+        take_price = close * (1 - tp_percent / 100)
+        strategy.exit("Short Exit", "Short", stop=stop_price, limit=take_price)
+    else if use_sl
+        stop_price = close * (1 + sl_percent / 100)
+        strategy.exit("Short SL", "Short", stop=stop_price)
+    else if use_tp
+        take_price = close * (1 - tp_percent / 100)
+        strategy.exit("Short TP", "Short", limit=take_price)
+
+// 반대 신호 시 청산
+if strategy.position_size > 0 and short_condition
+    strategy.close("Long", comment="Reverse to Short")
+if strategy.position_size < 0 and long_condition
+    strategy.close("Short", comment="Reverse to Long")
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 시각화 (Visualization)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// 진입 시그널 표시
+plotshape(long_condition and strategy.position_size == 0, "Long Signal", shape.triangleup, location.belowbar, color.green, size=size.small)
+plotshape(short_condition and strategy.position_size == 0, "Short Signal", shape.triangledown, location.abovebar, color.red, size=size.small)
+
+// 배경색 (포지션 상태)
+bgcolor(strategy.position_size > 0 ? color.new(color.green, 90) : strategy.position_size < 0 ? color.new(color.red, 90) : na)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 상태 테이블
+// ═══════════════════════════════════════════════════════════════════════════════
+var table status_table = table.new(position.bottom_right, 2, 7, bgcolor=color.new(color.black, 80), border_width=1)
+
+if barstate.islast
+    table.cell(status_table, 0, 0, "Indicator", text_color=color.white, text_size=size.small)
+    table.cell(status_table, 1, 0, "Value", text_color=color.white, text_size=size.small)
+    
+    table.cell(status_table, 0, 1, "Trend", text_color=color.white, text_size=size.small)
+    table.cell(status_table, 1, 1, trend == 1 ? "BULL" : trend == -1 ? "BEAR" : "NEUTRAL", text_color=trend == 1 ? color.green : trend == -1 ? color.red : color.gray, text_size=size.small)
+    
+    table.cell(status_table, 0, 2, "RSI", text_color=color.white, text_size=size.small)
+    table.cell(status_table, 1, 2, str.tostring(rsi_value, "#.#"), text_color=rsi_overbought_cond ? color.red : rsi_oversold_cond ? color.green : color.white, text_size=size.small)
+    
+    table.cell(status_table, 0, 3, "MFI", text_color=color.white, text_size=size.small)
+    table.cell(status_table, 1, 3, str.tostring(mfi_value, "#.#"), text_color=color.white, text_size=size.small)
+    
+    table.cell(status_table, 0, 4, "Position", text_color=color.white, text_size=size.small)
+    pos_text = strategy.position_size > 0 ? "LONG" : strategy.position_size < 0 ? "SHORT" : "FLAT"
+    table.cell(status_table, 1, 4, pos_text, text_color=strategy.position_size > 0 ? color.green : strategy.position_size < 0 ? color.red : color.gray, text_size=size.small)
+    
+    table.cell(status_table, 0, 5, "P&L %", text_color=color.white, text_size=size.small)
+    table.cell(status_table, 1, 5, str.tostring(strategy.netprofit / strategy.initial_capital * 100, "#.##") + "%", text_color=strategy.netprofit > 0 ? color.green : color.red, text_size=size.small)
+    
+    table.cell(status_table, 0, 6, "Win Rate", text_color=color.white, text_size=size.small)
+    win_rate = strategy.wintrades / math.max(strategy.closedtrades, 1) * 100
+    table.cell(status_table, 1, 6, str.tostring(win_rate, "#.#") + "%", text_color=win_rate > 50 ? color.green : color.red, text_size=size.small)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 알림 (Alerts)
+// ═══════════════════════════════════════════════════════════════════════════════
+alertcondition(long_condition, "Long Entry Signal", '{"signal":"LONG","price":{{close}},"time":"{{time}}"}')
+alertcondition(short_condition, "Short Entry Signal", '{"signal":"SHORT","price":{{close}},"time":"{{time}}"}')
+alertcondition(bos_bull, "BOS Bull", '{"signal":"BOS_BULL","price":{{close}}}')
+alertcondition(bos_bear, "BOS Bear", '{"signal":"BOS_BEAR","price":{{close}}}')
+alertcondition(choch_bull, "CHoCH Bull", '{"signal":"CHOCH_BULL","price":{{close}}}')
+alertcondition(choch_bear, "CHoCH Bear", '{"signal":"CHOCH_BEAR","price":{{close}}}')
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// END OF STRATEGY
+// ═══════════════════════════════════════════════════════════════════════════════

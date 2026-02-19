@@ -1,0 +1,19 @@
+# Phase 2 DAY 2 이슈 해결 태스크
+
+## 진행 상황
+
+- [x] 위키 파일 확인 및 현재 상태 파악
+- [x] 관련 파일 분석 ([n8n_branding_router.js](file:///C:/Users/user/.gemini/antigravity/scratch/n8n_branding_router.js), [n8n_shotstack_builder_v20.16.js](file:///C:/Users/user/.gemini/antigravity/scratch/n8n_shotstack_builder_v20.16.js), [AIASF_GPT_Prompt_v6.15.md](file:///C:/Users/user/.gemini/antigravity/scratch/AIASF_GPT_Prompt_v6.15.md))
+- [x] 이슈 원인 분석 완료
+- [x] 구현 계획서 작성 ([implementation_plan.md](file:///C:/Users/user/.gemini/antigravity/brain/78dacadf-2f6b-4773-9fee-c02857b582d5/implementation_plan.md))
+- [/] 대표님 승인 대기 중
+
+## 다음 작업
+
+- [ ] `n8n_shotstack_builder_v20.17.js` 생성
+  - [ ] 자막 width: 720 → 800
+  - [ ] MAX_CHARS_PER_LINE: 11 → 13
+  - [ ] TTS length 동적 적용
+- [ ] GPT 주제선정 topic 강제 가이드 작성
+- [ ] 위키 업데이트
+- [ ] n8n 적용 및 테스트

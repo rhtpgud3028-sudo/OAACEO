@@ -1,0 +1,245 @@
+# AIASF Phase 1 - 완전 최종 워크플로우 설정 가이드
+
+> **버전**: FINAL v1.0 (2026-01-07 15:09)
+> **목적**: 모든 n8n 노드의 정확한 설정을 한 문서에 총망라
+
+---
+
+## 📊 워크플로우 전체 구조
+
+```
+[Schedule/Manual Trigger]
+    ↓
+[1. YouTube Trends] → GET 트렌드 데이터
+    ↓
+[2. GPT 주제선정] → 주제 선택
+    ↓
+[3. GPT 스크립트] → 스크립트 + 이미지 프롬프트 생성 ⭐ v6.4
+    ↓
+[4. GPT 이미지 프롬프트] → 프롬프트 파싱
+    ↓
+[Parse Prompts] → [Split Prompts]
+    ↓
+[5. DALL-E 3 이미지] → 이미지 8장 생성
+    ↓
+[Download Image] → [Save Image] → [Create Image URL]
+    ↓
+[Merge Images] → [4. Platform Router]
+    ↓
+    ├── [5a. Kling 생성 Intro] → [Wait 30s] → [Kling Polling Intro] → [Code2] → [If]
+    └── [5b. Kling 생성 Outro] → [Wait 30s1] → [Kling Polling Outro] → [Code4] → [If4]
+    ↓
+[Merge] (append)
+    ↓
+[6. Typecast TTS] → TTS 음성 생성 ⭐
+    ↓
+[Save Audio]
+    ↓
+[Code] ⭐ v19.5
+    ↓
+[7. Shotstack 렌더링] → 영상 렌더링
+    ↓
+[Wait 30s_2] → [Shotstack Polling] → [If3]
+    ↓
+[Download]
+    ↓
+[8. YouTube 업로드] ⭐ Title/Description/Tags
+```
+
+---
+
+## ⭐ 핵심 노드 상세 설정
+
+---
+
+### 1. 3. GPT 스크립트 노드
+
+**Operation**: Message a Model
+**Model**: CHATGPT-4O-LATEST
+
+#### System Prompt (v6.4 - 전체 복사!)
+
+파일: [AIASF_GPT_Prompt.md](file:///C:/Users/user/.gemini/antigravity/scratch/AIASF_GPT_Prompt.md)의 System Prompt 섹션 (라인 12부터 199까지의 ``` ``` 안 내용)
+
+#### User Prompt
+
+```
+주제: {{ $json.topic }}
+훅: {{ $json.hook }}
+접근각도: {{ $json.angle }}
+
+규칙:
+1. 정확히 8개 문장! 이모지 필수!
+2. 각 40~48자! (총 350자 내외)
+3. 마침표로만 구분!
+4. 첫 문장은 5가지 후킹 유형 중 선택!
+5. 에너지 80% 이상! 감탄사 활용!
+6. 마지막은 진심 어린 "구독" CTA!
+7. intro_title: 10자 내외 임팩트 한줄 필수!
+8. image_prompts: 8개! (슬라이드 1:1 매칭)
+9. tags: 5개 훅킹 태그! (shorts, 5060 필수 포함!)
+10. 이미지는 modern Seoul apartment, iPhone photography 스타일!
+```
+
+---
+
+### 2. 5a. Kling 생성 Intro 노드
+
+**Method**: POST
+**URL**: https://api.piapi.ai/api/v1/task
+**Body Content Type**: JSON
+
+#### Body
+
+```json
+{
+  "model": "kling",
+  "task_type": "video_generation",
+  "input": {
+    "prompt": {{ (() => { try { let c = $('3. GPT 스크립트').first().json.message.content; if(c.startsWith('```json')) c = c.slice(7); if(c.startsWith('```')) c = c.slice(3); if(c.endsWith('```')) c = c.slice(0,-3); const gpt = JSON.parse(c.trim()); return JSON.stringify(gpt.intro_video_prompt || "A cheerful 58-year-old Korean woman smiling in modern Seoul apartment, soft morning sunlight, iPhone photography"); } catch(e) { return JSON.stringify("A cheerful 58-year-old Korean woman smiling in modern Seoul apartment, soft morning sunlight, iPhone photography"); } })() }},
+    "aspect_ratio": "9:16",
+    "duration": 5,
+    "mode": "std",
+    "cfg_scale": 0.5
+  }
+}
+```
+
+---
+
+### 3. 5b. Kling 생성 Outro 노드
+
+**Method**: POST
+**URL**: https://api.piapi.ai/api/v1/task
+**Body Content Type**: JSON
+
+#### Body
+
+```json
+{
+  "model": "kling",
+  "task_type": "video_generation",
+  "input": {
+    "prompt": {{ (() => { try { let c = $('3. GPT 스크립트').first().json.message.content; if(c.startsWith('```json')) c = c.slice(7); if(c.startsWith('```')) c = c.slice(3); if(c.endsWith('```')) c = c.slice(0,-3); const gpt = JSON.parse(c.trim()); return JSON.stringify(gpt.outro_video_prompt || "Happy 60-year-old Korean couple giving thumbs up in bright modern apartment, soft natural daylight, iPhone photography"); } catch(e) { return JSON.stringify("Happy 60-year-old Korean couple giving thumbs up in bright modern apartment, soft natural daylight, iPhone photography"); } })() }},
+    "aspect_ratio": "9:16",
+    "duration": 5,
+    "mode": "std",
+    "cfg_scale": 0.5
+  }
+}
+```
+
+---
+
+### 4. 6. Typecast TTS 노드
+
+**Method**: POST
+**URL**: https://api.typecast.ai/v1/text-to-speech
+**Body Content Type**: JSON
+
+#### Body
+
+```json
+{
+  "text": {{ (() => { try { let c = $('3. GPT 스크립트').first().json.message.content; if(c.startsWith('```json')) c = c.slice(7); if(c.startsWith('```')) c = c.slice(3); if(c.endsWith('```')) c = c.slice(0,-3); const gpt = JSON.parse(c.trim()); return JSON.stringify(gpt.script || "안녕하세요 여러분 오늘도 건강정보 알려드릴게요"); } catch(e) { return JSON.stringify("안녕하세요 여러분 오늘도 건강정보 알려드릴게요"); } })() }},
+  "lang": "ko",
+  "voice_id": "tc_5c789c32dabcfa0008b0a38d",
+  "model": "ssfm-v21"
+}
+```
+
+---
+
+### 5. Code 노드 (Shotstack JSON Builder)
+
+**파일**: [n8n_shotstack_builder.js](file:///C:/Users/user/.gemini/antigravity/scratch/n8n_shotstack_builder.js) v19.5 전체 코드 붙여넣기
+
+#### 출력 필드 확인:
+- `bodyString` - Shotstack JSON
+- `videoTitle` - YouTube 제목
+- `category` - 카테고리
+- `introTitle` - 인트로 타이틀
+- `tags` - 자동 태그 배열
+- `intro_prompt`, `outro_prompt`
+- `image_prompts`
+- `thumbnailImage`
+
+---
+
+### 6. 8. YouTube 업로드 노드
+
+**Operation**: Upload
+**Input Binary Field**: data
+
+#### Title
+
+```
+{{ $('Code').first().json.videoTitle }}
+```
+
+#### Description
+
+```
+{{ $('Code').first().json.image_prompts[0] || "건강 정보 영상입니다" }}
+
+#shorts #건강 #5060
+```
+
+#### Tags
+
+```
+{{ $('Code').first().json.tags.join(',') }}
+```
+
+---
+
+## 🔧 v19.5 자막 설정 요약
+
+| 항목 | 값 |
+|------|-----|
+| 폰트 | Noto Sans KR, 48px, Bold |
+| 자간 | letterSpacing: 2 |
+| 줄간격 | lineHeight: 1.8 |
+| 폭 | 900px (좌우 90px 여백) |
+| 배경 | black, opacity 0.7 |
+| 위치 | offsetY: -0.25 |
+
+---
+
+## 🎬 인트로 타이틀 설정
+
+| 항목 | 값 |
+|------|-----|
+| 폰트 | Noto Sans KR, 72px, Extra Bold (900) |
+| 위치 | offsetY: 0.15 (화면 상단 30%) |
+| 지속 | 5초 (인트로 전체) |
+| 배경 | black, opacity 0.6 |
+
+---
+
+## ✅ 최종 체크리스트
+
+- [ ] GPT 스크립트 노드: v6.4 System Prompt 적용
+- [ ] Kling Intro 노드: Body 표현식 업데이트
+- [ ] Kling Outro 노드: Body 표현식 업데이트
+- [ ] Typecast TTS 노드: Body 표현식 업데이트
+- [ ] Code 노드: v19.5 코드 적용
+- [ ] YouTube 업로드 노드: Title/Description/Tags 업데이트
+
+---
+
+## 📋 기대 결과
+
+1. ✅ 자막 이모지 겹침 없음 (letterSpacing 2)
+2. ✅ 자막 좌우 짤림 없음 (width 900px)
+3. ✅ 인트로 타이틀 표시 (72px, 5초)
+4. ✅ YouTube 제목 정상 표시
+5. ✅ YouTube 태그 자동 생성
+6. ✅ TTS 전체 재생 (script 전체)
+7. ✅ 8개 슬라이드 정상 표시
+8. ✅ 영상 50초 분량
+
+---
+
+> **작성**: Antigravity AI
+> **최종 확인**: 2026-01-07 15:09

@@ -1,0 +1,147 @@
+{
+    "version": "3.0.0",
+    "description": "AIASF Phase 2 - 21채널 로고 & 채널아트 생성 프롬프트",
+    "created": "2026-01-21",
+    "note": "DALL-E 3 또는 Midjourney에서 사용. 대괄호 [] 부분을 변주별로 변경",
+    "channels": {
+        "health": {
+            "topic": "저속노화 & 혈당",
+            "color": "#228B22",
+            "colorName": "포레스트 그린",
+            "logo": {
+                "variations": [
+                    "Minimalist logo icon for health channel targeting seniors, green apple icon with a heart beat line, forest green and white color palette, flat design, clean lines, high quality, 8k --ar 1:1",
+                    "Minimalist logo icon for health channel targeting seniors, stylized green leaf protecting a blood drop, forest green and white color palette, flat design, clean lines, high quality, 8k --ar 1:1",
+                    "Minimalist logo icon for health channel targeting seniors, abstract tree with roots, forest green and white color palette, flat design, clean lines, high quality, 8k --ar 1:1"
+                ]
+            },
+            "banner": {
+                "variations": [
+                    "Wide YouTube channel banner background, peaceful nature scene, healthy vibrant senior couple walking in a forest, calm and fresh atmosphere, forest green tones, space for text on the right side, Korean modern style aesthetic --ar 16:9",
+                    "Wide YouTube channel banner background, peaceful nature scene, healthy vibrant senior couple practicing gentle yoga outdoors, calm and fresh atmosphere, forest green tones, space for text on the right side, Korean modern style aesthetic --ar 16:9",
+                    "Wide YouTube channel banner background, peaceful nature scene, healthy vibrant senior couple eating fresh green salad, calm and fresh atmosphere, forest green tones, space for text on the right side, Korean modern style aesthetic --ar 16:9"
+                ]
+            }
+        },
+        "finance": {
+            "topic": "은퇴자산 & 연금",
+            "color": "#000080",
+            "colorName": "네이비 블루",
+            "logo": {
+                "variations": [
+                    "Trustworthy logo icon for financial retirement channel, stylized shield with a dollar sign, navy blue and gold accent color palette, professional, geometric design, high quality --ar 1:1",
+                    "Trustworthy logo icon for financial retirement channel, stacked coins forming a mountain, navy blue and gold accent color palette, professional, geometric design, high quality --ar 1:1",
+                    "Trustworthy logo icon for financial retirement channel, growing graph arrow inside a safe box, navy blue and gold accent color palette, professional, geometric design, high quality --ar 1:1"
+                ]
+            },
+            "banner": {
+                "variations": [
+                    "Wide YouTube channel banner background, luxurious office desk with financial charts and spectacles, overlooking a calm city skyline at sunset, trustworthy and wealthy atmosphere, dark navy and gold tones, blurry background, space for text in center, Korean modern style --ar 16:9",
+                    "Wide YouTube channel banner background, elegant study room with financial books and analytical reports, professional atmosphere, dark navy and gold tones, space for text in center, Korean modern style --ar 16:9",
+                    "Wide YouTube channel banner background, modern bank interior with secure vault, trustworthy atmosphere, dark navy blue and gold accents, space for text in center, Korean modern style --ar 16:9"
+                ]
+            }
+        },
+        "rural": {
+            "topic": "전원주택 & 토지",
+            "color": "#8B4513",
+            "colorName": "어스 브라운",
+            "logo": {
+                "variations": [
+                    "Friendly logo icon for rural real estate channel, cozy small house with a chimney under a sun, warm earthy brown and beige color palette, organic shape, inviting design --ar 1:1",
+                    "Friendly logo icon for rural real estate channel, rolling hills with a small cottage, warm earthy brown and beige color palette, organic shape, inviting design --ar 1:1",
+                    "Friendly logo icon for rural real estate channel, a hand holding a small sprout and a house, warm earthy brown and beige color palette, organic shape, inviting design --ar 1:1"
+                ]
+            },
+            "banner": {
+                "variations": [
+                    "Wide YouTube channel banner background, beautiful panoramic view of a serene Korean countryside landscape with a dream house, golden hour light, warm and inviting atmosphere, earth tones, wide angle lens, space for text on the left, Korean traditional beauty --ar 16:9",
+                    "Wide YouTube channel banner background, idyllic Korean village with traditional and modern houses, peaceful rural setting, warm earth tones, space for text on the left --ar 16:9",
+                    "Wide YouTube channel banner background, vegetable garden with small farmhouse in Korean countryside, morning mist, warm earthy atmosphere, space for text on the left --ar 16:9"
+                ]
+            }
+        },
+        "wisdom": {
+            "topic": "관계 & 노년의 지혜",
+            "color": "#F5F5DC",
+            "colorName": "베이지",
+            "logo": {
+                "variations": [
+                    "Warm logo icon for senior wisdom channel, two stylized hands gently holding a glowing light, soft beige and muted warm colors, soft edges, calming design --ar 1:1",
+                    "Warm logo icon for senior wisdom channel, an open old book with wisdom rays, soft beige and muted warm colors, soft edges, calming design --ar 1:1",
+                    "Warm logo icon for senior wisdom channel, an abstract knot representing connection, soft beige and muted warm colors, soft edges, calming design --ar 1:1"
+                ]
+            },
+            "banner": {
+                "variations": [
+                    "Wide YouTube channel banner background, cozy Korean living room setting with two cups of warm tea on a wooden table, sunlight streaming through a window, comfortable and wise atmosphere, soft beige and cream tones, photorealistic --ar 16:9",
+                    "Wide YouTube channel banner background, elderly Korean couple holding hands watching sunset, warm emotional atmosphere, soft beige tones, space for text --ar 16:9",
+                    "Wide YouTube channel banner background, peaceful garden with stone bench and old tree, contemplative Korean atmosphere, soft beige and natural tones --ar 16:9"
+                ]
+            }
+        },
+        "sidejob": {
+            "topic": "디지털 부업",
+            "color": "#FF8C00",
+            "colorName": "에너제틱 오렌지",
+            "logo": {
+                "variations": [
+                    "Energetic logo icon for digital side hustle channel, a rocket launching from a smartphone, bright orange and white color palette, dynamic, modern design, bold lines --ar 1:1",
+                    "Energetic logo icon for digital side hustle channel, a lightbulb with a dollar sign, bright orange and white color palette, dynamic, modern design, bold lines --ar 1:1",
+                    "Energetic logo icon for digital side hustle channel, a fast-forward arrow with a coin, bright orange and white color palette, dynamic, modern design, bold lines --ar 1:1"
+                ]
+            },
+            "banner": {
+                "variations": [
+                    "Wide YouTube channel banner background, a desk setup with a laptop showing a growing graph and a smartphone, bright morning light, energetic and hopeful atmosphere, vibrant orange accents, blurry home office background, space for text, Korean modern style --ar 16:9",
+                    "Wide YouTube channel banner background, Korean senior happily working on laptop at cafe, modern entrepreneurial vibe, orange accents, space for text --ar 16:9",
+                    "Wide YouTube channel banner background, home office with success charts and coffee, morning energy atmosphere, orange and white tones, space for text --ar 16:9"
+                ]
+            }
+        },
+        "beauty": {
+            "topic": "중년 뷰티 & 교정",
+            "color": "#FFB6C1",
+            "colorName": "소프트 로즈",
+            "logo": {
+                "variations": [
+                    "Elegant logo icon for middle-age beauty channel, graceful silhouette of a woman's face, soft rose pink and silver color palette, sophisticated, feminine design, thin lines --ar 1:1",
+                    "Elegant logo icon for middle-age beauty channel, abstract blooming flower, soft rose pink and silver color palette, sophisticated, feminine design, thin lines --ar 1:1",
+                    "Elegant logo icon for middle-age beauty channel, a mirror reflecting a shining face, soft rose pink and silver color palette, sophisticated, feminine design, thin lines --ar 1:1"
+                ]
+            },
+            "banner": {
+                "variations": [
+                    "Wide YouTube channel banner background, clean and bright vanity table with high-end skincare products and flowers, soft natural light, elegant and luxurious atmosphere, soft pink and pastel tones, high resolution, space for text, Korean beauty aesthetic --ar 16:9",
+                    "Wide YouTube channel banner background, elegant Korean woman doing yoga stretch, graceful posture, soft pink tones, space for text --ar 16:9",
+                    "Wide YouTube channel banner background, luxurious spa setting with rose petals and skincare, premium atmosphere, soft pink and gold tones, space for text --ar 16:9"
+                ]
+            }
+        },
+        "tech": {
+            "topic": "생활/AI 꿀팁",
+            "color": "#007FFF",
+            "colorName": "테크 블루",
+            "logo": {
+                "variations": [
+                    "Clever logo icon for tech tips channel, stylized brain icon connected to a Wi-Fi symbol, tech blue and bright cyan color palette, futuristic, clean design --ar 1:1",
+                    "Clever logo icon for tech tips channel, a gear icon with a magnifying glass, tech blue and bright cyan color palette, futuristic, clean design --ar 1:1",
+                    "Clever logo icon for tech tips channel, a robot head wink with an idea bulb, tech blue and bright cyan color palette, futuristic, clean design --ar 1:1"
+                ]
+            },
+            "banner": {
+                "variations": [
+                    "Wide YouTube channel banner background, futuristic yet accessible interface elements, glowing blue digital lines connecting everyday objects like a phone and a home, smart and innovative atmosphere, tech blue tones, digital art style, Korean modern aesthetic --ar 16:9",
+                    "Wide YouTube channel banner background, smartphone with app icons floating around, friendly tech atmosphere, tech blue gradient, space for text --ar 16:9",
+                    "Wide YouTube channel banner background, AI assistant helping senior with smartphone, friendly futuristic vibe, blue and white tones, space for text --ar 16:9"
+                ]
+            }
+        }
+    },
+    "globalRules": {
+        "imageStyle": "Korean modern aesthetic, NOT Chinese or Japanese style",
+        "resolution": "High quality, 8k resolution recommended",
+        "textSpace": "Always leave space for text overlay",
+        "colorConsistency": "Maintain brand color throughout all visuals"
+    }
+}

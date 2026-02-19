@@ -1,0 +1,403 @@
+# 🔥 AIASF v20.0 고도화 5종 구현 계획서 (딥체크 완료!)
+
+> **작성일**: 2026-01-08
+> **딥체크**: ✅ 트리플 체크 완료 (API 문서 직접 검증)
+> **목표**: 5가지 고도화 작업 완료 후 1회 통합 테스트
+
+---
+
+## 🔍 딥체크 결과 요약
+
+### ✅ 검증 통과
+
+| 항목 | 검증 결과 | 비고 |
+|------|----------|------|
+| GPT-4o Vision API 형식 | ✅ 정확 | `image_url` 객체 내 `url` 필드 |
+| AudioAsset 구조 | ✅ 정확 | `type: "audio"`, `src`, `volume` |
+| soundtrack 속성 | ✅ 정확 | `effect: fadeIn/fadeOut/fadeInFadeOut` |
+
+### ⚠️ 수정 필요 (중요 발견!)
+
+| 항목 | 문제점 | 해결책 |
+|------|--------|--------|
+| **HTML Asset** | 🔴 **DEPRECATED!** | TextAsset 또는 rich-text 사용 권장 |
+| 키워드 하이라이트 | HTML 필요하지만 deprecated | **2가지 옵션 제시** (아래 참고) |
+
+---
+
+## 📋 최종 고도화 작업 목록 (수정됨!)
+
+| # | 작업 | 난이도 | 예상 시간 | 리스크 |
+|---|------|-------|----------|--------|
+| 1 | 역발상 워크플로우 노드 | 🟡 중 | 15분 | 🟢 낮음 |
+| 2 | 효과음 레이어 | 🟢 쉬움 | 10분 | 🟢 낮음 |
+| 3 | 품질 자동 체크 | 🟢 쉬움 | 5분 | 🟢 낮음 |
+| 4 | BGM 감정 연동 | 🟢 쉬움 | 5분 | 🟢 낮음 |
+| 5 | 키워드 하이라이트 | 🔴 리스크 | - | ⚠️ **결정 필요** |
+
+---
+
+## 1️⃣ 역발상 워크플로우 노드 추가 (15분)
+
+### 개념
+```
+기존: 주제 → 스크립트 → 이미지
+역발상: 키워드 → 썸네일 이미지 → 이미지 분석 → 스크립트 역생성
+```
+
+### n8n 노드 추가 (3개)
+
+#### 1-1. DALL-E Thumbnail 노드
+
+**노드 타입**: OpenAI
+
+| 설정 | 값 |
+|------|---|
+| Resource | Image |
+| Operation | Create |
+| Model | dall-e-3 |
+| Size | 1024x1792 (세로!) |
+| Quality | standard |
+
+**Prompt**:
+```
+Dramatic, eye-catching thumbnail for YouTube Shorts.
+Topic: {{ $json.topic || "건강한 노후" }}
+Korean 50-60 age group style.
+Vibrant colors, high contrast, impactful visual.
+photorealistic, no text, no letters, no words, clean background
+```
+
+**노드 이름**: `DALL-E Thumbnail` (⚠️ 정확히!)
+
+---
+
+#### 1-2. GPT Vision 분석 노드
+
+**노드 타입**: OpenAI (Chat)
+
+| 설정 | 값 |
+|------|---|
+| Model | **gpt-4o** (필수!) |
+| Response Format | 기본값 |
+
+**System Message**:
+```
+당신은 이미지 분석 전문가입니다. 주어진 이미지를 분석하고 5060세대 한국인을 위한 유튜브 숏츠 스크립트를 역생성하기 위한 정보를 제공합니다.
+
+분석 후 다음 JSON을 반환하세요:
+{
+  "image_description": "이미지 상세 설명 (한국어)",
+  "mood": "분위기",
+  "suggested_topic": "추천 주제",
+  "key_elements": ["요소1", "요소2", "요소3"],
+  "target_emotion": "목표 감정"
+}
+```
+
+**User Message** (⚠️ Content Type = **Array** 필수!):
+```json
+[
+  { "type": "text", "text": "이 이미지를 분석해주세요." },
+  { "type": "image_url", "image_url": { "url": "{{ $json.data[0].url }}" } }
+]
+```
+
+**노드 이름**: `GPT Vision 분석`
+
+---
+
+#### 1-3. GPT 스크립트 User Prompt 수정
+
+기존 User Prompt **끝에** 추가:
+```
+🔄 [역발상 모드] 이미지 분석 결과:
+{{ $('GPT Vision 분석').first().json.message.content }}
+
+이 이미지 분석 결과를 반영하여 스크립트를 작성하세요!
+image_analysis 필드에 위 분석 결과를 포함하세요.
+```
+
+---
+
+#### 노드 연결 순서
+
+```
+[Trigger]
+    ↓
+[DALL-E Thumbnail] ← NEW
+    ↓
+[GPT Vision 분석] ← NEW
+    ↓
+[3. GPT 스크립트] ← User Prompt 수정
+    ↓
+... (기존 플로우)
+```
+
+---
+
+## 2️⃣ 효과음 레이어 추가 (10분)
+
+### 효과음 파일 준비
+
+**다운로드**: [Mixkit](https://mixkit.co/free-sound-effects/transition/)
+
+| 효과음 | 용도 | 다운로드 검색어 | 파일명 |
+|--------|------|----------------|--------|
+| 띠링 | 슬라이드 전환 | "notification ding" | `sfx_ding.mp3` |
+| 우웅 | 줌인 효과 | "whoosh" | `sfx_whoosh.mp3` |
+| 콩! | 후킹 강조 | "impact hit" | `sfx_impact.mp3` |
+
+**서버 업로드**:
+```bash
+# SSH로 LightNode 접속 후
+sudo mkdir -p /var/www/sfx
+sudo chown www-data:www-data /var/www/sfx
+# 파일 업로드 후
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+### Code 노드 수정
+
+```javascript
+// ==================== v20.0 효과음 라이브러리 ====================
+const SFX_LIBRARY = {
+    "ding": "https://autoshort.site/sfx/sfx_ding.mp3",
+    "whoosh": "https://autoshort.site/sfx/sfx_whoosh.mp3",
+    "impact": "https://autoshort.site/sfx/sfx_impact.mp3"
+};
+
+// 효과음 클립 생성
+const sfxClips = [];
+
+// 1. 인트로: 임팩트 효과음
+sfxClips.push({
+    asset: { type: "audio", src: SFX_LIBRARY.impact, volume: 0.5 },
+    start: 0,
+    length: 1
+});
+
+// 2. 슬라이드 전환마다: 띠링
+for (let i = 1; i < segments.length; i++) {
+    sfxClips.push({
+        asset: { type: "audio", src: SFX_LIBRARY.ding, volume: 0.3 },
+        start: INTRO_LEN + (i * perSegmentTime) - 0.2,
+        length: 0.5
+    });
+}
+
+// 3. CTA 시작: 우웅
+sfxClips.push({
+    asset: { type: "audio", src: SFX_LIBRARY.whoosh, volume: 0.4 },
+    start: outroStart - 0.5,
+    length: 1
+});
+```
+
+**tracks 배열에 추가**:
+```javascript
+tracks: [
+    { clips: subtitleClips },
+    { clips: visualClips },
+    ...(audioClips.length ? [{ clips: audioClips }] : []),
+    ...(sfxClips.length ? [{ clips: sfxClips }] : [])  // ← 추가!
+]
+```
+
+---
+
+## 3️⃣ 품질 자동 체크 노드 (5분)
+
+### Code 노드 추가 (Shotstack Polling 다음)
+
+```javascript
+// ==================== 품질 체크 로직 ====================
+const renderResult = $input.first().json;
+
+const qualityCheck = {
+    status: renderResult.response?.status || "unknown",
+    duration: renderResult.response?.data?.duration || 0,
+    hasVideo: !!renderResult.response?.data?.url,
+    url: renderResult.response?.data?.url || ""
+};
+
+// 실패 체크
+if (qualityCheck.status !== "done" || !qualityCheck.hasVideo) {
+    throw new Error(`🔴 렌더링 실패: ${qualityCheck.status}`);
+}
+
+// 영상 길이 경고 (45-55초 범위)
+if (qualityCheck.duration < 45 || qualityCheck.duration > 55) {
+    console.warn(`⚠️ 경고: 영상 ${qualityCheck.duration}초 (목표: 50초)`);
+}
+
+return [{ json: { ...renderResult, qualityCheck } }];
+```
+
+---
+
+## 4️⃣ BGM 감정 연동 볼륨 조절 (5분)
+
+### 개념
+```
+인트로(후킹): BGM 낮게 → TTS 강조
+본문: BGM 보통
+CTA 직전: BGM 높게 → 감성 고조
+아웃트로: BGM 최고 → 따뜻한 마무리
+```
+
+### Code 노드 수정
+
+```javascript
+// ==================== v20.0 BGM 감정 연동 ====================
+const BGM_VOLUME_CONFIG = {
+    intro: 0.15,     // 후킹: TTS 집중
+    body: 0.25,      // 본문: 밸런스
+    climax: 0.35,    // CTA직전: 감성 UP
+    outro: 0.4       // 아웃트로: 따뜻함
+};
+
+// soundtrack 대신 개별 BGM 클립으로!
+const bgmClips = [
+    {
+        asset: { type: "audio", src: bgmUrl, volume: BGM_VOLUME_CONFIG.intro },
+        start: 0,
+        length: INTRO_LEN
+    },
+    {
+        asset: { type: "audio", src: bgmUrl, volume: BGM_VOLUME_CONFIG.body },
+        start: INTRO_LEN,
+        length: BODY_LEN - 5
+    },
+    {
+        asset: { type: "audio", src: bgmUrl, volume: BGM_VOLUME_CONFIG.climax },
+        start: INTRO_LEN + BODY_LEN - 5,
+        length: 5
+    },
+    {
+        asset: { type: "audio", src: bgmUrl, volume: BGM_VOLUME_CONFIG.outro },
+        start: outroStart,
+        length: OUTRO_LEN
+    }
+];
+```
+
+**Shotstack JSON 수정**:
+```javascript
+const shotstackBody = {
+    timeline: {
+        // ⚠️ soundtrack 제거!
+        background: "#000000",
+        fonts: [{ src: primaryFont }],
+        tracks: [
+            { clips: subtitleClips },
+            { clips: visualClips },
+            ...(audioClips.length ? [{ clips: audioClips }] : []),
+            { clips: bgmClips },     // ← BGM 트랙
+            ...(sfxClips.length ? [{ clips: sfxClips }] : [])
+        ]
+    },
+    output: { format: "mp4", resolution: "hd", aspectRatio: "9:16", fps: 30 }
+};
+```
+
+---
+
+## 5️⃣ 키워드 하이라이트 자막 - ⚠️ 결정 필요!
+
+### 🔴 딥체크 발견 사항
+
+| 발견 | 내용 |
+|------|------|
+| HTML Asset | **DEPRECATED** (공식 문서 확인) |
+| 권장 대안 | TextAsset 또는 rich-text |
+| 문제점 | rich-text는 **단일 색상**만 지원 |
+
+### 🎯 2가지 옵션 제시
+
+#### 옵션 A: HTML Asset 사용 (리스크 있음)
+
+| 장점 | 단점 |
+|------|------|
+| 개별 단어 색상 가능 | ⚠️ Deprecated (향후 제거 가능) |
+| 유연한 스타일링 | 폰트 로딩 복잡 |
+
+```javascript
+// HTML Asset 방식 (Deprecated 경고!)
+{
+    asset: {
+        type: "html",
+        html: `<p>이것은 <span class="hl">대박</span> 정보에요!</p>`,
+        css: `.hl { color: #FFD700; font-weight: 900; }`,
+        width: 850,
+        height: 200
+    }
+}
+```
+
+#### 옵션 B: 현재 rich-text 유지 (안전)
+
+| 장점 | 단점 |
+|------|------|
+| 안정적 (API 지원) | 개별 단어 강조 불가 |
+| 폰트 로딩 검증됨 | 전체 동일 색상 |
+| 지금 바로 적용 가능 | - |
+
+**대표님 결정 필요!**:
+1. **옵션 A**: HTML 사용 (리스크 감수, 하이라이트 구현)
+2. **옵션 B**: rich-text 유지 (안전, 하이라이트 생략)
+3. **옵션 C**: Phase 2로 미룸 (나머지 4개 먼저 적용)
+
+---
+
+## ✅ 딥체크 완료 체크리스트
+
+```
+✅ AI 자체 검증 체크리스트 (트리플 체크 완료!):
+
+[✓] GPT Vision API 형식 검증 - image_url 구조 확인
+[✓] AudioAsset 구조 검증 - type, src, volume 확인
+[✓] Soundtrack 속성 검증 - effect 옵션 확인
+[✓] HTML Asset 상태 확인 - DEPRECATED 발견!
+[✓] rich-text 제한사항 확인 - 단일 색상만 지원
+[✓] 모든 변수 정의 확인
+[✓] 이전 버전(v19.9)과 호환성 확인
+[✓] 예상 오류 시나리오 검토 완료
+```
+
+---
+
+## 📁 파일 변경 요약
+
+### [MODIFY] n8n_shotstack_builder.js (v19.9 → v20.0)
+
+| 추가 기능 | 변경 내용 |
+|----------|----------|
+| 효과음 | SFX_LIBRARY, sfxClips 배열 |
+| BGM 연동 | BGM_VOLUME_CONFIG, bgmClips 배열 |
+| 품질 체크 | 별도 노드로 분리 |
+
+### [NEW] n8n 노드 3개
+
+1. `DALL-E Thumbnail` - OpenAI Image
+2. `GPT Vision 분석` - OpenAI Chat (gpt-4o)
+3. `품질 체크` - Code 노드
+
+---
+
+## 🚀 실행 순서
+
+1. ⏳ 대표님 **옵션 5번 결정** 대기
+2. ✅ 결정 후 → v20.0 코드 생성
+3. ✅ 효과음 업로드 가이드 제공
+4. ✅ n8n 노드 설정 스텝바이스텝 가이드
+5. ✅ 통합 테스트
+
+---
+
+**대표님 결정 부탁드립니다!** 🔥
+
+> **5번 키워드 하이라이트**:
+> - A: HTML 사용 (리스크 감수)
+> - B: rich-text 유지 (안전)
+> - C: Phase 2로 미룸

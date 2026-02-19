@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Shotstack v20.21 개선 계획. 공식 문서 기반 TextAsset 스펙 검증 완료. 자막 좌측 잘림, 마지막 검은화면, topic 강제 미작동 3가지 이슈에 대한 근본 해결 방안 제시. 대표님 확인 필요 사항 포함.",
+  "updatedAt": "2026-01-27T08:10:35.840319700Z"
+}

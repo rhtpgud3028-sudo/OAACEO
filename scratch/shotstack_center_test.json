@@ -1,0 +1,128 @@
+{
+    "timeline": {
+        "soundtrack": {
+            "src": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+            "effect": "fadeOut",
+            "volume": 0.5
+        },
+        "background": "#000000",
+        "tracks": [
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=1080"
+                        },
+                        "start": 0,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "zoomIn"
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "https://images.pexels.com/photos/1099680/pexels-photo-1099680.jpeg?auto=compress&cs=tinysrgb&w=1080"
+                        },
+                        "start": 5,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "zoomIn"
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "https://images.pexels.com/photos/1092730/pexels-photo-1092730.jpeg?auto=compress&cs=tinysrgb&w=1080"
+                        },
+                        "start": 10,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "zoomIn"
+                    }
+                ]
+            },
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "text",
+                            "text": "TEST SUBTITLE 1",
+                            "width": 800,
+                            "height": 100,
+                            "font": {
+                                "family": "Open Sans",
+                                "color": "#ffffff",
+                                "size": 36
+                            },
+                            "background": {
+                                "color": "#000000"
+                            },
+                            "alignment": {
+                                "horizontal": "center",
+                                "vertical": "center"
+                            }
+                        },
+                        "start": 0,
+                        "length": 5,
+                        "position": "center",
+                        "scale": 0.8
+                    },
+                    {
+                        "asset": {
+                            "type": "text",
+                            "text": "TEST SUBTITLE 2",
+                            "width": 800,
+                            "height": 100,
+                            "font": {
+                                "family": "Open Sans",
+                                "color": "#ffffff",
+                                "size": 36
+                            },
+                            "background": {
+                                "color": "#000000"
+                            },
+                            "alignment": {
+                                "horizontal": "center",
+                                "vertical": "center"
+                            }
+                        },
+                        "start": 5,
+                        "length": 5,
+                        "position": "center",
+                        "scale": 0.8
+                    },
+                    {
+                        "asset": {
+                            "type": "text",
+                            "text": "TEST SUBTITLE 3",
+                            "width": 800,
+                            "height": 100,
+                            "font": {
+                                "family": "Open Sans",
+                                "color": "#ffffff",
+                                "size": 36
+                            },
+                            "background": {
+                                "color": "#000000"
+                            },
+                            "alignment": {
+                                "horizontal": "center",
+                                "vertical": "center"
+                            }
+                        },
+                        "start": 10,
+                        "length": 5,
+                        "position": "center",
+                        "scale": 0.8
+                    }
+                ]
+            }
+        ]
+    },
+    "output": {
+        "format": "mp4",
+        "resolution": "hd",
+        "aspectRatio": "9:16",
+        "fps": 30
+    }
+}

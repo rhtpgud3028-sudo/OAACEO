@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Complete daily work summary including YouTube API quota withdrawal scenario, dynamic sync fixes, TTS volume adjustments, 65-second video completion, placeholder URL fix, and GPT prompt updates for Korean-only image generation. Documents all code changes from v20.9 to v20.12 and GPT prompt v6.13.",
+  "updatedAt": "2026-01-19T08:58:48.504392900Z"
+}

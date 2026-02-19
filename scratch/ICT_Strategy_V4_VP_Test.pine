@@ -1,0 +1,81 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © ICT Strategy V4 - Volume Profile 내장 함수 테스트
+// 핵심: volume.profile_fixed() 전략 호환성 테스트
+
+//@version=5
+strategy("ICT Strategy V4-VP Test", overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Volume Profile 설정 (Pine Script v5 내장 함수)
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_vp = "═══ Volume Profile ═══"
+vp_rows = input.int(100, "Row 수 (가격 구간)", minval=10, maxval=200, group=grp_vp)
+vp_bars = input.int(200, "분석 봉수", minval=50, maxval=500, group=grp_vp)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Volume Profile 계산 (내장 함수)
+// ═══════════════════════════════════════════════════════════════════════════════
+// volume.profile_fixed() 함수 테스트
+// 이 함수는 지정된 범위 내의 볼륨 프로파일을 계산합니다
+
+// Fixed Range Volume Profile
+vp = volume.profile_fixed(bar_index - vp_bars, bar_index, vp_rows)
+
+// POC (Point of Control) - 가장 거래량이 많은 가격
+poc_price = volume.profile_poc(vp)
+
+// Value Area High/Low
+va_high = volume.profile_vah(vp)
+va_low = volume.profile_val(vp)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 볼륨 프로파일 기반 진입 조건
+// ═══════════════════════════════════════════════════════════════════════════════
+// 롱: 가격이 POC 아래에서 VA Low 근처에서 반등
+long_vp_signal = close < poc_price and low <= va_low * 1.005 and close > open
+
+// 숏: 가격이 POC 위에서 VA High 근처에서 하락
+short_vp_signal = close > poc_price and high >= va_high * 0.995 and close < open
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 전략 실행
+// ═══════════════════════════════════════════════════════════════════════════════
+if long_vp_signal and strategy.position_size == 0
+    strategy.entry("Long", strategy.long)
+    strategy.exit("Long Exit", "Long", limit=poc_price, stop=close * 0.99)
+
+if short_vp_signal and strategy.position_size == 0
+    strategy.entry("Short", strategy.short)
+    strategy.exit("Short Exit", "Short", limit=poc_price, stop=close * 1.01)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 시각화
+// ═══════════════════════════════════════════════════════════════════════════════
+plot(poc_price, "POC", color=color.orange, linewidth=2, style=plot.style_stepline)
+plot(va_high, "VA High", color=color.red, linewidth=1, style=plot.style_stepline)
+plot(va_low, "VA Low", color=color.green, linewidth=1, style=plot.style_stepline)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 상태 테이블
+// ═══════════════════════════════════════════════════════════════════════════════
+var table info_table = table.new(position.top_right, 2, 5, bgcolor=color.new(color.black, 85))
+
+table.cell(info_table, 0, 0, "POC", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 0, str.tostring(poc_price, "#.##"), text_color=color.orange, text_size=size.small)
+
+table.cell(info_table, 0, 1, "VA High", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 1, str.tostring(va_high, "#.##"), text_color=color.red, text_size=size.small)
+
+table.cell(info_table, 0, 2, "VA Low", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 2, str.tostring(va_low, "#.##"), text_color=color.green, text_size=size.small)
+
+table.cell(info_table, 0, 3, "현재가", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 3, str.tostring(close, "#.##"), text_color=color.white, text_size=size.small)
+
+pos_txt = close > poc_price ? "POC 위" : close < poc_price ? "POC 아래" : "POC 근처"
+table.cell(info_table, 0, 4, "위치", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 4, pos_txt, text_color=close > poc_price ? color.green : color.red, text_size=size.small)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// END - Volume Profile Test
+// ═══════════════════════════════════════════════════════════════════════════════

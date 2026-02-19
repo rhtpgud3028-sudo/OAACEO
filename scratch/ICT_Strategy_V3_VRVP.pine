@@ -1,0 +1,273 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © ICT Trading Strategy V3 - VRVP + IRL/ERL 기반
+// 핵심: VRVP 볼륨 전환 + 1H Swing (IRL) + 1D Major (ERL) + 58x SL
+
+//@version=5
+strategy("ICT Strategy V3-VRVP", overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.percent, commission_value=0.04, slippage=1, pyramiding=0, max_boxes_count=500, max_labels_count=500)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 전략 설정
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_strategy = "═══ 전략 설정 ═══"
+leverage = input.float(58.0, "Leverage (x)", minval=1.0, maxval=125.0, step=1.0, group=grp_strategy)
+trade_direction = input.string("양방향 (Long & Short)", "트레이드 방향", options=["양방향 (Long & Short)", "롱만 (Long Only)", "숏만 (Short Only)"], group=grp_strategy)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SL 설정 (58x 레버리지 강제청산 버퍼)
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_sl = "═══ SL 설정 ═══"
+sl_price_pct = input.float(0.715, "SL % (가격 기준)", minval=0.1, maxval=5.0, step=0.01, group=grp_sl, tooltip="58x 레버리지 강제청산 마지노선 버퍼")
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// IRL/ERL 설정
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_irl_erl = "═══ IRL/ERL 설정 ═══"
+irl_min_bars = input.int(50, "IRL 최소 봉수 (1H Swing)", minval=10, maxval=100, group=grp_irl_erl)
+irl_max_bars = input.int(200, "IRL 최대 봉수 (1H Swing)", minval=100, maxval=500, group=grp_irl_erl)
+erl_min_bars = input.int(50, "ERL 최소 봉수 (1D Major)", minval=10, maxval=100, group=grp_irl_erl)
+erl_max_bars = input.int(200, "ERL 최대 봉수 (1D Major)", minval=100, maxval=500, group=grp_irl_erl)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// VRVP 설정 (볼륨 기반 시뮬레이션)
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_vrvp = "═══ VRVP 설정 ═══"
+vrvp_period = input.int(20, "VRVP 분석 기간", minval=5, maxval=100, group=grp_vrvp)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 백테스팅 기간 설정
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_period = "═══ 백테스팅 기간 ═══"
+use_date_filter = input.bool(true, "기간 필터 사용", group=grp_period)
+start_date = input.time(timestamp("2024-01-01 00:00 +0000"), "시작일", group=grp_period)
+end_date = input.time(timestamp("2025-12-31 23:59 +0000"), "종료일", group=grp_period)
+
+// 기간 필터 조건
+in_date_range = use_date_filter ? (time >= start_date and time <= end_date) : true
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HTF 추세 분석 (1D)
+// ═══════════════════════════════════════════════════════════════════════════════
+[htf_h, htf_l, htf_c] = request.security(syminfo.tickerid, "D", [high, low, close])
+htf_ema = ta.ema(htf_c, 20)
+htf_trend = htf_c > htf_ema ? 1 : htf_c < htf_ema ? -1 : 0
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// VRVP 시뮬레이션 (볼륨 기반 매수/매도 우위 전환 감지)
+// ═══════════════════════════════════════════════════════════════════════════════
+// 매수 볼륨 (양봉 거래량)
+buy_volume = close > open ? volume : 0
+// 매도 볼륨 (음봉 거래량)
+sell_volume = close < open ? volume : 0
+
+// N봉 누적 볼륨
+cum_buy_vol = ta.sma(buy_volume, vrvp_period)
+cum_sell_vol = ta.sma(sell_volume, vrvp_period)
+
+// 우위 판단
+buy_dominance = cum_buy_vol > cum_sell_vol
+sell_dominance = cum_sell_vol > cum_buy_vol
+
+// 전환 신호 (핵심!)
+// 롱: 매도 우위 → 매수 우위 전환 (가격 하락 후 반전)
+vrvp_long_shift = sell_dominance[1] and buy_dominance and close < open[1]
+// 숏: 매수 우위 → 매도 우위 전환 (가격 상승 후 반전)
+vrvp_short_shift = buy_dominance[1] and sell_dominance and close > open[1]
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// IRL 계산 (1H Swing High/Low) - 동적 lookback
+// ═══════════════════════════════════════════════════════════════════════════════
+// 추세 길이 감지 (ATR 기반 동적 조정)
+atr_val = ta.atr(14)
+volatility_factor = atr_val / close * 100  // 변동성 %
+
+// 동적 lookback 계산 (변동성에 따라 50~200봉)
+dynamic_irl_len = math.round(irl_min_bars + (irl_max_bars - irl_min_bars) * math.min(volatility_factor / 5, 1))
+
+// Swing High/Low 계산 (1H 기준 - 현재 차트)
+swing_high_1h = ta.highest(high, dynamic_irl_len)
+swing_low_1h = ta.lowest(low, dynamic_irl_len)
+
+// 직전 Swing (TP1 목표)
+var float last_swing_high = na
+var float last_swing_low = na
+
+// Swing 업데이트 (신고점/신저점 발생 시)
+if high >= swing_high_1h[1]
+    last_swing_high := high
+if low <= swing_low_1h[1]
+    last_swing_low := low
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ERL 계산 (1D Major High/Low) - 동적 lookback
+// ═══════════════════════════════════════════════════════════════════════════════
+// 동적 lookback 계산
+dynamic_erl_len = math.round(erl_min_bars + (erl_max_bars - erl_min_bars) * math.min(volatility_factor / 5, 1))
+
+// 1D 타임프레임에서 Major High/Low 가져오기
+[major_high_1d, major_low_1d] = request.security(syminfo.tickerid, "D", [ta.highest(high, dynamic_erl_len), ta.lowest(low, dynamic_erl_len)])
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FVG 감지
+// ═══════════════════════════════════════════════════════════════════════════════
+bull_fvg = low > high[2]
+bear_fvg = high < low[2]
+
+// FVG 변수
+var float bull_fvg_top = na
+var float bull_fvg_bottom = na
+var float bear_fvg_top = na
+var float bear_fvg_bottom = na
+
+if bull_fvg
+    bull_fvg_top := low
+    bull_fvg_bottom := high[2]
+    box.new(bar_index - 1, bull_fvg_top, bar_index + 15, bull_fvg_bottom, bgcolor=color.new(color.teal, 85), border_color=color.teal)
+
+if bear_fvg
+    bear_fvg_top := low[2]
+    bear_fvg_bottom := high
+    box.new(bar_index - 1, bear_fvg_top, bar_index + 15, bear_fvg_bottom, bgcolor=color.new(color.teal, 85), border_color=color.teal)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// OB 감지
+// ═══════════════════════════════════════════════════════════════════════════════
+// 장대 캔들 (ATR의 1배 이상)
+big_bull_candle = close > open and (close - open) > atr_val
+big_bear_candle = close < open and (open - close) > atr_val
+
+// OB: 장대 캔들 직전의 반대 캔들
+bull_ob = close[1] < open[1] and big_bull_candle
+bear_ob = close[1] > open[1] and big_bear_candle
+
+if bull_ob
+    box.new(bar_index - 1, high[1], bar_index + 20, low[1], bgcolor=color.new(color.yellow, 80), border_color=color.yellow)
+
+if bear_ob
+    box.new(bar_index - 1, high[1], bar_index + 20, low[1], bgcolor=color.new(color.yellow, 80), border_color=color.yellow)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 인걸핑 패턴
+// ═══════════════════════════════════════════════════════════════════════════════
+bull_engulfing = close > open and close[1] < open[1] and close > open[1] and open < close[1]
+bear_engulfing = close < open and close[1] > open[1] and close < open[1] and open > close[1]
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 최종 진입 조건 (모두 충족)
+// ═══════════════════════════════════════════════════════════════════════════════
+// 기본 조건
+base_long = (bull_fvg or bull_ob or bull_engulfing) and htf_trend >= 0
+base_short = (bear_fvg or bear_ob or bear_engulfing) and htf_trend <= 0
+
+// VRVP 조건 추가 (모두 충족)
+long_signal = base_long and vrvp_long_shift and strategy.position_size == 0
+short_signal = base_short and vrvp_short_shift and strategy.position_size == 0
+
+// 트레이드 방향 필터
+allow_long = trade_direction == "양방향 (Long & Short)" or trade_direction == "롱만 (Long Only)"
+allow_short = trade_direction == "양방향 (Long & Short)" or trade_direction == "숏만 (Short Only)"
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 전략 실행 - 분할 TP (TP1: 50% at IRL, TP2: 50% at ERL)
+// ═══════════════════════════════════════════════════════════════════════════════
+// 진입가 저장
+var float entry_price = na
+
+if long_signal and allow_long and in_date_range
+    entry_price := close
+    strategy.entry("Long", strategy.long)
+    
+    // TP1: 1H Swing High (IRL) - 50%
+    tp1_long = nz(last_swing_high, close * 1.01)
+    // TP2: 1D Major High (ERL) - 50%
+    tp2_long = nz(major_high_1d, close * 1.02)
+    // SL: 0.715%
+    sl_long = close * (1 - sl_price_pct / 100)
+    
+    strategy.exit("Long TP1", "Long", qty_percent=50, limit=tp1_long, stop=sl_long)
+    strategy.exit("Long TP2", "Long", qty_percent=100, limit=tp2_long, stop=sl_long)
+    
+    label.new(bar_index, low, "▲ L" + str.tostring(leverage, "#") + "x\nTP1:" + str.tostring(tp1_long, "#") + "\nTP2:" + str.tostring(tp2_long, "#"), style=label.style_label_up, color=color.green, textcolor=color.white, size=size.small)
+
+if short_signal and allow_short and in_date_range
+    entry_price := close
+    strategy.entry("Short", strategy.short)
+    
+    // TP1: 1H Swing Low (IRL) - 50%
+    tp1_short = nz(last_swing_low, close * 0.99)
+    // TP2: 1D Major Low (ERL) - 50%
+    tp2_short = nz(major_low_1d, close * 0.98)
+    // SL: 0.715%
+    sl_short = close * (1 + sl_price_pct / 100)
+    
+    strategy.exit("Short TP1", "Short", qty_percent=50, limit=tp1_short, stop=sl_short)
+    strategy.exit("Short TP2", "Short", qty_percent=100, limit=tp2_short, stop=sl_short)
+    
+    label.new(bar_index, high, "▼ S" + str.tostring(leverage, "#") + "x\nTP1:" + str.tostring(tp1_short, "#") + "\nTP2:" + str.tostring(tp2_short, "#"), style=label.style_label_down, color=color.red, textcolor=color.white, size=size.small)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// IRL/ERL 레벨 표시
+// ═══════════════════════════════════════════════════════════════════════════════
+plot(swing_high_1h, "IRL High (1H)", color=color.new(color.lime, 50), linewidth=1, style=plot.style_stepline)
+plot(swing_low_1h, "IRL Low (1H)", color=color.new(color.lime, 50), linewidth=1, style=plot.style_stepline)
+plot(major_high_1d, "ERL High (1D)", color=color.new(color.orange, 30), linewidth=2, style=plot.style_stepline)
+plot(major_low_1d, "ERL Low (1D)", color=color.new(color.orange, 30), linewidth=2, style=plot.style_stepline)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 레버리지 적용 수익 계산
+// ═══════════════════════════════════════════════════════════════════════════════
+pnl_1x = strategy.netprofit / strategy.initial_capital * 100
+pnl_leveraged = pnl_1x * leverage
+equity_leveraged = strategy.initial_capital * (1 + pnl_leveraged / 100)
+
+// SL 레버리지 환산
+sl_leveraged_display = sl_price_pct * leverage
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 상태 테이블 (항상 표시)
+// ═══════════════════════════════════════════════════════════════════════════════
+var table info_table = table.new(position.top_right, 2, 10, bgcolor=color.new(color.black, 85), border_width=1, border_color=color.gray)
+
+// 테이블 업데이트
+table.cell(info_table, 0, 0, "HTF", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 0, htf_trend == 1 ? "▲ BULL" : htf_trend == -1 ? "▼ BEAR" : "◆ SIDE", text_color=htf_trend == 1 ? color.green : htf_trend == -1 ? color.red : color.gray, text_size=size.small)
+
+table.cell(info_table, 0, 1, "LEVERAGE", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 1, str.tostring(leverage, "#") + "x", text_color=color.yellow, text_size=size.small)
+
+table.cell(info_table, 0, 2, "SL (가격)", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 2, str.tostring(sl_price_pct, "#.###") + "%", text_color=color.orange, text_size=size.small)
+
+table.cell(info_table, 0, 3, "SL (레버리지)", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 3, str.tostring(sl_leveraged_display, "#.#") + "%", text_color=color.orange, text_size=size.small)
+
+table.cell(info_table, 0, 4, "VRVP", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 4, buy_dominance ? "BUY" : sell_dominance ? "SELL" : "EVEN", text_color=buy_dominance ? color.green : sell_dominance ? color.red : color.gray, text_size=size.small)
+
+table.cell(info_table, 0, 5, "IRL Len", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 5, str.tostring(dynamic_irl_len, "#") + "봉", text_color=color.lime, text_size=size.small)
+
+table.cell(info_table, 0, 6, "POSITION", text_color=color.white, text_size=size.small)
+pos_txt = strategy.position_size > 0 ? "LONG" : strategy.position_size < 0 ? "SHORT" : "FLAT"
+table.cell(info_table, 1, 6, pos_txt, text_color=strategy.position_size > 0 ? color.green : strategy.position_size < 0 ? color.red : color.gray, text_size=size.small)
+
+// P&L (1x)
+table.cell(info_table, 0, 7, "P&L (1x)", text_color=color.gray, text_size=size.small)
+table.cell(info_table, 1, 7, str.tostring(pnl_1x, "#.##") + "%", text_color=pnl_1x > 0 ? color.green : color.red, text_size=size.small)
+
+// P&L (레버리지)
+table.cell(info_table, 0, 8, "★ P&L (" + str.tostring(leverage, "#") + "x)", text_color=color.yellow, text_size=size.small)
+table.cell(info_table, 1, 8, str.tostring(pnl_leveraged, "#.##") + "%", text_color=pnl_leveraged > 0 ? color.lime : color.fuchsia, text_size=size.normal)
+
+// EQUITY
+table.cell(info_table, 0, 9, "EQUITY (" + str.tostring(leverage, "#") + "x)", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 9, "$" + str.tostring(equity_leveraged, "#,###"), text_color=equity_leveraged > strategy.initial_capital ? color.lime : color.fuchsia, text_size=size.small)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 알림
+// ═══════════════════════════════════════════════════════════════════════════════
+alertcondition(long_signal, "Long Signal", '{"signal":"LONG","vrvp":"shift"}')
+alertcondition(short_signal, "Short Signal", '{"signal":"SHORT","vrvp":"shift"}')
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// END - ICT Strategy V3-VRVP
+// ═══════════════════════════════════════════════════════════════════════════════

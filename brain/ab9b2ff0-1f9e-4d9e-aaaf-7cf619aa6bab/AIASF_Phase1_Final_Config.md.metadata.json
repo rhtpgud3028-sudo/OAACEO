@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary":  "Complete n8n workflow configuration for AIASF Phase 1. Includes all node settings: GPT v6.4, Kling Intro/Outro, Typecast TTS, Code v19.5, YouTube upload. Contains exact expressions for each node body/field.",
+  "updatedAt":  "2026-01-07T06:10:48.068326600Z"
+}

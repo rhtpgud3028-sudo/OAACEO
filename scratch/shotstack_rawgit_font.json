@@ -1,0 +1,106 @@
+{
+    "timeline": {
+        "soundtrack": {
+            "src": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+            "effect": "fadeOut",
+            "volume": 0.5
+        },
+        "background": "#000000",
+        "fonts": [
+            {
+                "src": "https://cdn.rawgit.com/niceplugins/NotoSansKR-Hestia/master/NotoSansKR-Bold.otf"
+            }
+        ],
+        "tracks": [
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 36px; font-weight: bold; color: white; background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 8px;\">건강한 식단의 비밀</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 300
+                        },
+                        "start": 0,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.02
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 36px; font-weight: bold; color: white; background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 8px;\">매일 신선한 과일과 채소</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 300
+                        },
+                        "start": 5,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.02
+                        }
+                    },
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<div style=\"display: flex; justify-content: center; align-items: flex-end; height: 100%;\"><span style=\"font-family: 'Noto Sans KR'; font-size: 36px; font-weight: bold; color: white; background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 8px;\">건강하게 오래 사세요!</span></div>",
+                            "css": "body { margin: 0; padding: 0; }",
+                            "width": 1080,
+                            "height": 300
+                        },
+                        "start": 10,
+                        "length": 5,
+                        "position": "bottom",
+                        "offset": {
+                            "y": 0.02
+                        }
+                    }
+                ]
+            },
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=1080"
+                        },
+                        "start": 0,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "zoomIn"
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "https://images.pexels.com/photos/1099680/pexels-photo-1099680.jpeg?auto=compress&cs=tinysrgb&w=1080"
+                        },
+                        "start": 5,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "zoomIn"
+                    },
+                    {
+                        "asset": {
+                            "type": "image",
+                            "src": "https://images.pexels.com/photos/1092730/pexels-photo-1092730.jpeg?auto=compress&cs=tinysrgb&w=1080"
+                        },
+                        "start": 10,
+                        "length": 5,
+                        "fit": "cover",
+                        "effect": "zoomIn"
+                    }
+                ]
+            }
+        ]
+    },
+    "output": {
+        "format": "mp4",
+        "resolution": "hd",
+        "aspectRatio": "9:16",
+        "fps": 30
+    }
+}

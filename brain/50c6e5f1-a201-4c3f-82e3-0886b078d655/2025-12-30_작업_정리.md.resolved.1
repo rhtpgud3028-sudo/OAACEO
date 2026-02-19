@@ -1,0 +1,80 @@
+# 2025-12-30 작업 정리
+
+## 📌 오늘 완료된 작업
+
+### 1. n8n 환경 복구 (긴급)
+
+| 작업 | 상태 |
+|------|------|
+| Node.js 22.x 업그레이드 | ✅ 완료 |
+| n8n@latest 설치 | ✅ 완료 |
+| n8n 데이터 손실 → 복구 | ✅ 완료 |
+| Credentials 재설정 (5개) | ✅ 완료 |
+| 워크플로우 복원 | ✅ 완료 |
+
+### 2. n8n 안정화 설정
+
+| 작업 | 상태 |
+|------|------|
+| 자동 백업 cron job 설정 | ✅ 완료 (매일 18시) |
+| 502 Bad Gateway 해결 | ✅ 완료 |
+| N8N_USER_FOLDER 환경변수 문제 해결 | ✅ 완료 |
+| 파일 쓰기 권한 (N8N_RESTRICT_FILE_ACCESS_TO) 해결 | ✅ 완료 |
+| **PM2 자동 복구 설정** | ✅ **완료!** |
+
+### 3. 자막 문제 해결
+
+| 작업 | 상태 |
+|------|------|
+| 딥리서치 기반 자막 코드 수정 (v12.0) | ✅ 완료 |
+| - width: 864px (1080의 80%) | ✅ |
+| - offset.y: -0.05 | ✅ |
+| - size: 30, padding: 8 | ✅ |
+| **n8n Code 노드에 적용** | ⬜ **다음 세션** |
+| **테스트 실행** | ⬜ **다음 세션** |
+
+### 4. 문서 작성
+
+| 문서 | 상태 |
+|------|------|
+| n8n 502/셋업 오류 해결 가이드 (위키 추가) | ✅ 완료 |
+| n8n 자동 복구 PM2 보고서 | ✅ 완료 |
+
+---
+
+## ✅ 자동화 완료 현황
+
+| 항목 | 상태 | 설명 |
+|------|------|------|
+| **매일 18시 자동 백업** | ✅ | 워크플로우 + Credentials + DB |
+| **서버 크래시 자동 복구** | ✅ | PM2 autorestart |
+| **메모리 초과 시 재시작** | ✅ | 1GB 초과 시 자동 |
+| **서버 재부팅 시 자동 시작** | ✅ | PM2 startup 설정 |
+
+---
+
+## 📋 다음 세션 할 일
+
+1. ⬜ **v12.0 자막 코드** → n8n Code 노드에 적용
+2. ⬜ **테스트 실행** → 자막 표시 확인
+3. ⬜ **Phase 1 완료 검증**
+
+---
+
+## 🔧 중요 환경 정보
+
+| 항목 | 값 |
+|------|-----|
+| **서버** | LightNode (autoshort.site) |
+| **Node.js** | v22.x |
+| **n8n** | v2.1.4 (Self-Hosted) |
+| **필수 환경변수** | N8N_USER_FOLDER=/root/.n8n |
+| **백업 위치** | /root/.n8n/backups/YYYY-MM-DD/ |
+
+---
+
+## 📎 관련 파일
+
+- 자막 코드: [n8n_shotstack_builder.js](file:///C:/Users/user/.gemini/antigravity/scratch/n8n_shotstack_builder.js) (v12.0 FINAL)
+- PM2 보고서: [n8n_auto_recovery_report.md](file:///C:/Users/user/.gemini/antigravity/brain/50c6e5f1-a201-4c3f-82e3-0886b078d655/n8n_auto_recovery_report.md)
+- 프로젝트 위키: `프로젝트_위키_통합.md`

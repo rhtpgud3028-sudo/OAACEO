@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "AIASF Phase 2 마스터 스케줄. 2026-01-22 14:00부터 2026-01-31 18:00까지 평일 업무시간(09:00-18:00) 기준 총 67시간 일정. n8n 워크플로우 설정(8h), YouTube 21채널 생성(18h), TikTok 연동(10h), 시운전(12h), 검증(8h), 버퍼(11h) 포함. 일자별/시간대별 세부 과업 및 담당자 지정.",
+  "updatedAt": "2026-01-22T04:48:14.006081300Z"
+}

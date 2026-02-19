@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "스크립트-이미지-영상 동기화 시스테 설계. GPT가 스크립트 분석 후 각 문장에 맞는 이미지 프롬프트 + 영상 프롬프트 생성. 하나의 톤으로 통일된 콘텐츠 제작.",
+  "updatedAt":  "2025-12-31T05:55:42.420925600Z",
+  "version":  "1"
+}

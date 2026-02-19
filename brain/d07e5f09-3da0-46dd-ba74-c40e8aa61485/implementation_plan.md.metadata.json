@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "첫 1초부터 TTS 후킹을 위한 인트로 TTS 분리 구현 계획. GPT 프롬프트에 hook_text 필드 추가, n8n ElevenLabs TTS 노드 2개 구성, Shotstack 코드 타임라인 재구성.",
+  "updatedAt":  "2026-01-14T01:15:32.937272500Z"
+}

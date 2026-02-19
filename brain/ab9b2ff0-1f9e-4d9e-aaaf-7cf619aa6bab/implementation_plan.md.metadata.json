@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Implementation plan for restructuring script system (v6.3): Research shows Korean TTS = 7 chars/sec, so 50 seconds needs ~440 chars. Plan includes changing from 6 sentences to 8 sentences, adding intro title (10 chars), and implementing dynamic subtitle height.",
+  "updatedAt":  "2026-01-07T02:54:58.163563300Z"
+}

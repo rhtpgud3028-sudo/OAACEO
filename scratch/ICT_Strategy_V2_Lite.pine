@@ -1,0 +1,210 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © ICT Trading Strategy V2-Lite - 백테스팅용 단순화 버전
+// 핵심: HTF 추세 + FVG/OB + 인걸핑 (사용자 전략 기반)
+
+//@version=5
+strategy("ICT Strategy V2-Lite", overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.percent, commission_value=0.04, slippage=1, pyramiding=0, max_boxes_count=500, max_labels_count=500)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 전략 설정
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_strategy = "═══ 전략 설정 ═══"
+leverage = input.float(58.0, "Leverage (x)", minval=1.0, maxval=125.0, step=1.0, group=grp_strategy)
+sl_leveraged = input.float(30.0, "Stop Loss % (레버리지 적용)", minval=0.1, maxval=200.0, step=0.1, group=grp_strategy, tooltip="레버리지 적용된 실제 손실률. 예: 30% = 원금의 30% 손실")
+tp_leveraged = input.float(60.0, "Take Profit % (레버리지 적용)", minval=0.1, maxval=200.0, step=0.1, group=grp_strategy, tooltip="레버리지 적용된 실제 수익률. 예: 60% = 원금의 60% 수익")
+trade_direction = input.string("양방향 (Long & Short)", "트레이드 방향", options=["양방향 (Long & Short)", "롱만 (Long Only)", "숯만 (Short Only)"], group=grp_strategy)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 백테스팅 기간 설정
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_period = "═══ 백테스팅 기간 ═══"
+use_date_filter = input.bool(true, "기간 필터 사용", group=grp_period)
+start_date = input.time(timestamp("2024-01-01 00:00 +0000"), "시작일", group=grp_period)
+end_date = input.time(timestamp("2025-12-31 23:59 +0000"), "종료일", group=grp_period)
+
+// 기간 필터 조건
+in_date_range = use_date_filter ? (time >= start_date and time <= end_date) : true
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 진입 조건 설정
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_entry = "═══ 진입 조건 ═══"
+entry_mode = input.string("OR (하나만 충족)", "진입 로직", options=["AND (모두 충족)", "OR (하나만 충족)"], group=grp_entry)
+use_htf_filter = input.bool(true, "HTF 추세 필터", group=grp_entry)
+use_fvg_entry = input.bool(true, "FVG 진입", group=grp_entry)
+use_ob_entry = input.bool(true, "OB 진입", group=grp_entry)
+use_engulfing = input.bool(true, "인걸핑 진입", group=grp_entry)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HTF 설정
+// ═══════════════════════════════════════════════════════════════════════════════
+grp_htf = "═══ HTF 설정 ═══"
+htf_tf = input.timeframe("D", "HTF (1D)", group=grp_htf)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HTF 추세 분석
+// ═══════════════════════════════════════════════════════════════════════════════
+[htf_h, htf_l, htf_c] = request.security(syminfo.tickerid, htf_tf, [high, low, close])
+htf_ema = ta.ema(htf_c, 20)
+htf_trend = htf_c > htf_ema ? 1 : htf_c < htf_ema ? -1 : 0
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FVG 감지
+// ═══════════════════════════════════════════════════════════════════════════════
+bull_fvg = low > high[2]
+bear_fvg = high < low[2]
+
+// FVG 변수
+var float bull_fvg_top = na
+var float bull_fvg_bottom = na
+var float bear_fvg_top = na
+var float bear_fvg_bottom = na
+
+if bull_fvg
+    bull_fvg_top := low
+    bull_fvg_bottom := high[2]
+    box.new(bar_index - 1, bull_fvg_top, bar_index + 15, bull_fvg_bottom, bgcolor=color.new(color.teal, 85), border_color=color.teal)
+
+if bear_fvg
+    bear_fvg_top := low[2]
+    bear_fvg_bottom := high
+    box.new(bar_index - 1, bear_fvg_top, bar_index + 15, bear_fvg_bottom, bgcolor=color.new(color.teal, 85), border_color=color.teal)
+
+// FVG 터치 확인
+bull_fvg_touch = not na(bull_fvg_top) and low <= bull_fvg_top and high >= bull_fvg_bottom
+bear_fvg_touch = not na(bear_fvg_top) and high >= bear_fvg_top and low <= bear_fvg_bottom
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// OB 감지
+// ═══════════════════════════════════════════════════════════════════════════════
+atr_val = ta.atr(14)
+
+// 장대 캔들 (ATR의 1배 이상)
+big_bull_candle = close > open and (close - open) > atr_val
+big_bear_candle = close < open and (open - close) > atr_val
+
+// OB: 장대 캔들 직전의 반대 캔들
+bull_ob = close[1] < open[1] and big_bull_candle
+bear_ob = close[1] > open[1] and big_bear_candle
+
+if bull_ob
+    box.new(bar_index - 1, high[1], bar_index + 20, low[1], bgcolor=color.new(color.yellow, 80), border_color=color.yellow)
+
+if bear_ob
+    box.new(bar_index - 1, high[1], bar_index + 20, low[1], bgcolor=color.new(color.yellow, 80), border_color=color.yellow)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 인걸핑 패턴
+// ═══════════════════════════════════════════════════════════════════════════════
+bull_engulfing = close > open and close[1] < open[1] and close > open[1] and open < close[1]
+bear_engulfing = close < open and close[1] > open[1] and close < open[1] and open > close[1]
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 진입 조건 (AND/OR 선택 가능)
+// ═══════════════════════════════════════════════════════════════════════════════
+// HTF 필터 (옵션)
+htf_long_ok = use_htf_filter ? htf_trend >= 0 : true
+htf_short_ok = use_htf_filter ? htf_trend <= 0 : true
+
+// 개별 진입 신호
+long_fvg = use_fvg_entry and (bull_fvg or bull_fvg_touch)
+long_ob = use_ob_entry and bull_ob
+long_engulfing = use_engulfing and bull_engulfing
+
+short_fvg = use_fvg_entry and (bear_fvg or bear_fvg_touch)
+short_ob = use_ob_entry and bear_ob
+short_engulfing = use_engulfing and bear_engulfing
+
+// AND/OR 로직 선택
+use_and_logic = entry_mode == "AND (모두 충족)"
+
+// 최종 진입 조건
+long_signal_or = (long_fvg or long_ob or long_engulfing) and htf_long_ok
+long_signal_and = ((not use_fvg_entry or long_fvg) and (not use_ob_entry or long_ob) and (not use_engulfing or long_engulfing)) and htf_long_ok
+long_signal = (use_and_logic ? long_signal_and : long_signal_or) and strategy.position_size == 0
+
+short_signal_or = (short_fvg or short_ob or short_engulfing) and htf_short_ok
+short_signal_and = ((not use_fvg_entry or short_fvg) and (not use_ob_entry or short_ob) and (not use_engulfing or short_engulfing)) and htf_short_ok
+short_signal = (use_and_logic ? short_signal_and : short_signal_or) and strategy.position_size == 0
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 전략 실행 (레버리지 적용)
+// ═══════════════════════════════════════════════════════════════════════════════
+// 레버리지 적용 TP/SL → 가격 변동률로 역산
+// ═══════════════════════════════════════════════════════════════════════════════
+// 입력값: 레버리지 적용 손익률 (예: 30% 손실)
+// 역산: 실제 가격 변동률 = 레버리지 손익률 / 레버리지
+sl_price_pct = sl_leveraged / leverage  // 가격 변동률 (예: 30/58 = 0.517%)
+tp_price_pct = tp_leveraged / leverage  // 가격 변동률 (예: 60/58 = 1.034%)
+
+// 트레이드 방향 필터
+allow_long = trade_direction == "양방향 (Long & Short)" or trade_direction == "롱만 (Long Only)"
+allow_short = trade_direction == "양방향 (Long & Short)" or trade_direction == "숯만 (Short Only)"
+
+if long_signal and allow_long and in_date_range
+    strategy.entry("Long", strategy.long)
+    strategy.exit("Long Exit", "Long", limit=close * (1 + tp_price_pct/100), stop=close * (1 - sl_price_pct/100))
+    label.new(bar_index, low, "▲ L" + str.tostring(leverage, "#") + "x", style=label.style_label_up, color=color.green, textcolor=color.white, size=size.small)
+
+if short_signal and allow_short and in_date_range
+    strategy.entry("Short", strategy.short)
+    strategy.exit("Short Exit", "Short", limit=close * (1 - tp_price_pct/100), stop=close * (1 + sl_price_pct/100))
+    label.new(bar_index, high, "▼ S" + str.tostring(leverage, "#") + "x", style=label.style_label_down, color=color.red, textcolor=color.white, size=size.small)
+
+// 반대 신호 시 청산
+if strategy.position_size > 0 and short_signal and allow_short and in_date_range
+    strategy.close("Long")
+if strategy.position_size < 0 and long_signal and allow_long and in_date_range
+    strategy.close("Short")
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 레버리지 적용 수익 계산
+// ═══════════════════════════════════════════════════════════════════════════════
+pnl_1x = strategy.netprofit / strategy.initial_capital * 100
+pnl_leveraged = pnl_1x * leverage
+equity_leveraged = strategy.initial_capital * (1 + pnl_leveraged / 100)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 상태 테이블 (항상 표시)
+// ═══════════════════════════════════════════════════════════════════════════════
+var table info_table = table.new(position.top_right, 2, 8, bgcolor=color.new(color.black, 85), border_width=1, border_color=color.gray)
+
+// 테이블 항상 업데이트
+table.cell(info_table, 0, 0, "HTF", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 0, htf_trend == 1 ? "▲ BULL" : htf_trend == -1 ? "▼ BEAR" : "◆ SIDE", text_color=htf_trend == 1 ? color.green : htf_trend == -1 ? color.red : color.gray, text_size=size.small)
+
+table.cell(info_table, 0, 1, "LEVERAGE", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 1, str.tostring(leverage, "#") + "x", text_color=color.yellow, text_size=size.small)
+
+table.cell(info_table, 0, 2, "SL / TP", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 2, str.tostring(sl_leveraged, "#.#") + "% / " + str.tostring(tp_leveraged, "#.#") + "%", text_color=color.orange, text_size=size.small)
+
+table.cell(info_table, 0, 3, "POSITION", text_color=color.white, text_size=size.small)
+pos_txt = strategy.position_size > 0 ? "LONG" : strategy.position_size < 0 ? "SHORT" : "FLAT"
+table.cell(info_table, 1, 3, pos_txt, text_color=strategy.position_size > 0 ? color.green : strategy.position_size < 0 ? color.red : color.gray, text_size=size.small)
+
+// 기본 P&L (1x)
+table.cell(info_table, 0, 4, "P&L (1x)", text_color=color.gray, text_size=size.small)
+table.cell(info_table, 1, 4, str.tostring(pnl_1x, "#.##") + "%", text_color=pnl_1x > 0 ? color.green : color.red, text_size=size.small)
+
+// 레버리지 적용 P&L (핵심!)
+table.cell(info_table, 0, 5, "★ P&L (" + str.tostring(leverage, "#") + "x)", text_color=color.yellow, text_size=size.small)
+table.cell(info_table, 1, 5, str.tostring(pnl_leveraged, "#.##") + "%", text_color=pnl_leveraged > 0 ? color.lime : color.fuchsia, text_size=size.normal)
+
+// 레버리지 적용 자산
+table.cell(info_table, 0, 6, "EQUITY (" + str.tostring(leverage, "#") + "x)", text_color=color.white, text_size=size.small)
+table.cell(info_table, 1, 6, "$" + str.tostring(equity_leveraged, "#,###"), text_color=equity_leveraged > strategy.initial_capital ? color.lime : color.fuchsia, text_size=size.small)
+
+// 가격 기준 SL/TP (참고용)
+table.cell(info_table, 0, 7, "Price SL/TP", text_color=color.gray, text_size=size.tiny)
+table.cell(info_table, 1, 7, str.tostring(sl_price_pct, "#.##") + "% / " + str.tostring(tp_price_pct, "#.##") + "%", text_color=color.gray, text_size=size.tiny)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 알림
+// ═══════════════════════════════════════════════════════════════════════════════
+alertcondition(long_signal, "Long", '{"signal":"LONG"}')
+alertcondition(short_signal, "Short", '{"signal":"SHORT"}')
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// END - ICT Strategy V2-Lite
+// ═══════════════════════════════════════════════════════════════════════════════

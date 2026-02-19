@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_OTHER",
+  "summary":  "GPT segments 구조로 인한 모든 영향받는 노드 완전 수정 가이드. TTS, Kling, 이미지, Shotstack 모두 포함.",
+  "updatedAt":  "2025-12-31T07:03:45.683481400Z",
+  "version":  "2"
+}

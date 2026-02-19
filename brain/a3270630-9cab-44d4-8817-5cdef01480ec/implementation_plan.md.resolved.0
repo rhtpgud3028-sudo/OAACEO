@@ -1,0 +1,428 @@
+# 🔥 AIASF v20.0 고도화 5종 구현 계획서
+
+> **작성일**: 2026-01-08
+> **목표**: 5가지 고도화 작업 완료 후 1회 통합 테스트
+> **예상 소요**: 45분
+
+---
+
+## 📋 고도화 작업 목록
+
+| # | 작업 | 영역 | 예상시간 |
+|---|------|------|---------|
+| 1 | 역발상 워크플로우 노드 추가 | n8n 노드 | 15분 |
+| 2 | 효과음 레이어 추가 | Code 노드 | 10분 |
+| 3 | 품질 자동 체크 노드 | n8n 노드 | 5분 |
+| 4 | BGM 감정 연동 볼륨 조절 | Code 노드 | 5분 |
+| 5 | 키워드 하이라이트 자막 | Code 노드 | 10분 |
+
+---
+
+## 1️⃣ 역발상 워크플로우 노드 추가 (15분)
+
+### 개념
+```
+기존: 주제 → 스크립트 → 이미지
+역발상: 키워드 → 썸네일 이미지 → 이미지 분석 → 스크립트 역생성
+```
+
+### n8n 노드 추가 (3개)
+
+#### 1-1. DALL-E Thumbnail 노드 (NEW!)
+
+**위치**: `Trigger` 바로 다음
+
+**노드 타입**: OpenAI
+
+**설정**:
+```
+Resource: Image
+Operation: Create
+Model: dall-e-3
+Prompt: 
+Dramatic, eye-catching thumbnail for YouTube Shorts.
+Topic: {{ $json.topic || "건강한 노후" }}
+Korean 50-60 age group style.
+Vibrant colors, high contrast, impactful visual.
+photorealistic, no text, no letters, no words, clean background
+
+Size: 1024x1792 (세로형!)
+Quality: standard
+```
+
+**노드 이름**: 정확히 `DALL-E Thumbnail` (⚠️ 코드 참조명!)
+
+---
+
+#### 1-2. GPT Vision 분석 노드 (NEW!)
+
+**위치**: `DALL-E Thumbnail` 다음
+
+**노드 타입**: OpenAI (Chat)
+
+**설정**:
+```
+Model: gpt-4o (Vision 지원 필수!)
+```
+
+**System Message**:
+```
+당신은 이미지 분석 전문가입니다. 주어진 이미지를 분석하고 5060세대 한국인을 위한 유튜브 숏츠 스크립트를 역생성하기 위한 정보를 제공합니다.
+
+분석 후 다음 JSON을 반환하세요:
+{
+  "image_description": "이미지 상세 설명 (한국어)",
+  "mood": "분위기",
+  "suggested_topic": "추천 주제",
+  "key_elements": ["요소1", "요소2", "요소3"],
+  "target_emotion": "목표 감정"
+}
+```
+
+**User Message** (Content Type을 **Array**로!):
+```json
+[
+  { "type": "text", "text": "이 이미지를 분석해주세요." },
+  { "type": "image_url", "image_url": { "url": "{{ $json.data[0].url }}" } }
+]
+```
+
+**노드 이름**: 정확히 `GPT Vision 분석`
+
+---
+
+#### 1-3. GPT 스크립트 노드 User Prompt 수정
+
+**기존 User Prompt 끝에 추가**:
+```
+🔄 [역발상 모드] 이미지 분석 결과:
+{{ $('GPT Vision 분석').first().json.message.content }}
+
+이 이미지 분석 결과를 반영하여 스크립트를 작성하세요!
+image_analysis 필드에 위 분석 결과를 포함하세요.
+```
+
+---
+
+#### 노드 연결 순서
+
+```
+[Trigger]
+    ↓
+[DALL-E Thumbnail] ← 새로 추가
+    ↓
+[GPT Vision 분석] ← 새로 추가
+    ↓
+[3. GPT 스크립트] ← User Prompt 수정
+    ↓
+... (기존 플로우 유지)
+```
+
+---
+
+## 2️⃣ 효과음 레이어 추가 (10분)
+
+### 효과음 라이브러리 (서버 업로드 필요!)
+
+**파일 준비** (무료 다운로드):
+- [Mixkit](https://mixkit.co/free-sound-effects/) 에서 다운로드 권장
+
+| 효과음 | 용도 | 파일명 |
+|--------|------|--------|
+| 띠링 | 슬라이드 전환 | `sfx_ding.mp3` |
+| 우웅 | 줌인 효과 | `sfx_whoosh.mp3` |
+| 콩! | 강조 (후킹) | `sfx_impact.mp3` |
+
+**업로드 경로**: `https://autoshort.site/sfx/`
+
+### Code 노드 수정 (v20.0)
+
+```javascript
+// ==================== 효과음 라이브러리 ====================
+const SFX_LIBRARY = {
+    "ding": "https://autoshort.site/sfx/sfx_ding.mp3",
+    "whoosh": "https://autoshort.site/sfx/sfx_whoosh.mp3",
+    "impact": "https://autoshort.site/sfx/sfx_impact.mp3"
+};
+
+// 효과음 클립 생성
+const sfxClips = [];
+
+// 인트로 시작 시 임팩트 효과음
+sfxClips.push({
+    asset: { type: "audio", src: SFX_LIBRARY.impact, volume: 0.5 },
+    start: 0,
+    length: 1
+});
+
+// 각 슬라이드 전환 시 띠링 효과음
+for (let i = 1; i < segments.length; i++) {
+    sfxClips.push({
+        asset: { type: "audio", src: SFX_LIBRARY.ding, volume: 0.3 },
+        start: INTRO_LEN + (i * perSegmentTime) - 0.2,  // 전환 0.2초 전
+        length: 0.5
+    });
+}
+
+// 마지막 CTA 강조
+sfxClips.push({
+    asset: { type: "audio", src: SFX_LIBRARY.whoosh, volume: 0.4 },
+    start: outroStart - 0.5,
+    length: 1
+});
+```
+
+**tracks 배열에 추가**:
+```javascript
+tracks: [
+    { clips: subtitleClips },
+    { clips: visualClips },
+    ...(audioClips.length ? [{ clips: audioClips }] : []),
+    ...(sfxClips.length ? [{ clips: sfxClips }] : [])  // 추가!
+]
+```
+
+---
+
+## 3️⃣ 품질 자동 체크 노드 (5분)
+
+### n8n IF 노드 추가
+
+**위치**: `Shotstack Render` 노드 다음
+
+**노드 타입**: IF
+
+**조건**:
+```
+{{ $json.response.status }} === "done"
+AND
+{{ $json.response.data.length }} > 0
+```
+
+**True 경로**: YouTube 업로드로 연결
+**False 경로**: Slack/이메일 알림 (선택)
+
+### 간단 버전 (Code 노드)
+
+**Shotstack Polling 후 Code 노드 추가**:
+
+```javascript
+// 품질 체크 로직
+const renderResult = $input.first().json;
+
+const qualityCheck = {
+    status: renderResult.response?.status || "unknown",
+    duration: renderResult.response?.data?.duration || 0,
+    hasVideo: !!renderResult.response?.data?.url,
+    url: renderResult.response?.data?.url || ""
+};
+
+// 실패 조건
+if (qualityCheck.status !== "done" || !qualityCheck.hasVideo) {
+    throw new Error(`렌더링 실패: ${qualityCheck.status}`);
+}
+
+// 영상 길이 체크 (45-55초)
+if (qualityCheck.duration < 45 || qualityCheck.duration > 55) {
+    console.warn(`경고: 영상 길이 ${qualityCheck.duration}초 (목표: 50초)`);
+}
+
+return [{ json: { ...renderResult, qualityCheck } }];
+```
+
+---
+
+## 4️⃣ BGM 감정 연동 볼륨 조절 (5분)
+
+### 개념
+- 후킹(첫 문장): BGM 볼륨 낮춤 (TTS 강조)
+- 본문: BGM 볼륨 보통
+- CTA(마지막): BGM 볼륨 높임 (감성 UP)
+
+### Code 노드 수정
+
+```javascript
+// ==================== BGM 감정 연동 설정 ====================
+const BGM_VOLUME_CONFIG = {
+    intro: 0.15,        // 인트로: 낮게 (후킹 TTS 강조)
+    body: 0.25,         // 본문: 보통
+    climax: 0.35,       // CTA 직전: 높게 (감성 고조)
+    outro: 0.4          // 아웃트로: 높게 (따뜻한 마무리)
+};
+
+// soundtrack 대신 개별 오디오 클립으로 변경
+const bgmClips = [
+    // 인트로 구간
+    {
+        asset: { type: "audio", src: bgmUrl, volume: BGM_VOLUME_CONFIG.intro },
+        start: 0,
+        length: INTRO_LEN
+    },
+    // 본문 구간
+    {
+        asset: { type: "audio", src: bgmUrl, volume: BGM_VOLUME_CONFIG.body },
+        start: INTRO_LEN,
+        length: BODY_LEN - 5
+    },
+    // CTA 직전 클라이맥스
+    {
+        asset: { type: "audio", src: bgmUrl, volume: BGM_VOLUME_CONFIG.climax },
+        start: INTRO_LEN + BODY_LEN - 5,
+        length: 5
+    },
+    // 아웃트로
+    {
+        asset: { type: "audio", src: bgmUrl, volume: BGM_VOLUME_CONFIG.outro },
+        start: outroStart,
+        length: OUTRO_LEN
+    }
+];
+```
+
+**Shotstack JSON 수정**:
+```javascript
+const shotstackBody = {
+    timeline: {
+        // soundtrack 제거!
+        background: "#000000",
+        fonts: [{ src: primaryFont }],
+        tracks: [
+            { clips: subtitleClips },
+            { clips: visualClips },
+            ...(audioClips.length ? [{ clips: audioClips }] : []),
+            { clips: bgmClips },  // BGM 트랙 추가!
+            ...(sfxClips.length ? [{ clips: sfxClips }] : [])
+        ]
+    },
+    output: { format: "mp4", resolution: "hd", aspectRatio: "9:16", fps: 30 }
+};
+```
+
+---
+
+## 5️⃣ 키워드 하이라이트 자막 (10분)
+
+### 리서치 결과
+- Shotstack `rich-text`는 단일 색상만 지원
+- **HTML asset** 사용 시 개별 단어 색상 변경 가능!
+- ⚠️ 단, HTML asset은 폰트 로딩이 다름 (Google Fonts 또는 웹폰트 필요)
+
+### 구현 방식: HTML Asset + CSS
+
+```javascript
+// ==================== 키워드 하이라이트 설정 ====================
+const HIGHLIGHT_KEYWORDS = ["대박", "필수", "놀라운", "주의", "꼭", "절대", "진짜", "완전"];
+const HIGHLIGHT_COLOR = "#FFD700";  // 금색
+
+function applyHighlight(text) {
+    let result = text;
+    HIGHLIGHT_KEYWORDS.forEach(keyword => {
+        const regex = new RegExp(`(${keyword})`, 'g');
+        result = result.replace(regex, `<span class="highlight">$1</span>`);
+    });
+    return result;
+}
+
+// HTML 자막 클립 생성
+function createHtmlSubtitleClip(text, start, length, lineCount) {
+    const highlightedText = applyHighlight(formatSubtitle(text));
+    const dynamicHeight = Math.max(200, lineCount * 100 + 50);
+    
+    return {
+        asset: {
+            type: "html",
+            html: `<div class="subtitle">${highlightedText.replace(/\n/g, '<br>')}</div>`,
+            css: `
+                .subtitle {
+                    font-family: 'Noto Sans KR', sans-serif;
+                    font-size: 48px;
+                    font-weight: 700;
+                    color: #ffffff;
+                    text-align: center;
+                    line-height: 1.8;
+                    letter-spacing: 2px;
+                    background: rgba(0,0,0,0.7);
+                    padding: 20px 40px;
+                    border-radius: 10px;
+                }
+                .highlight {
+                    color: ${HIGHLIGHT_COLOR};
+                    font-weight: 900;
+                }
+            `,
+            width: 850,
+            height: dynamicHeight
+        },
+        start,
+        length,
+        position: "bottom",
+        offset: { x: 0, y: 0.08 }
+    };
+}
+```
+
+### ⚠️ 주의사항
+- HTML asset은 외부 CSS 폰트 필요!
+- Google Fonts CDN 사용:
+```css
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@700;900&display=swap');
+```
+
+---
+
+## 📁 파일 변경 사항
+
+### [MODIFY] n8n_shotstack_builder.js
+
+버전: v19.9 → **v20.0-ENHANCEMENT**
+
+변경 내용:
+1. 효과음 라이브러리 + 클립 생성 로직
+2. BGM 감정 연동 볼륨 분할
+3. 키워드 하이라이트 HTML 자막
+4. debug 정보 업데이트
+
+---
+
+## ✅ 대표님 작업 체크리스트
+
+### Part 1: n8n 노드 추가 (15분)
+
+- [ ] 1-1. `DALL-E Thumbnail` 노드 추가
+- [ ] 1-2. `GPT Vision 분석` 노드 추가
+- [ ] 1-3. `3. GPT 스크립트` User Prompt 수정
+- [ ] 1-4. 노드 연결 확인
+
+### Part 2: 효과음 파일 업로드 (5분)
+
+- [ ] 2-1. Mixkit에서 효과음 3개 다운로드
+- [ ] 2-2. LightNode 서버 `/var/www/sfx/` 폴더 생성
+- [ ] 2-3. 효과음 파일 업로드
+- [ ] 2-4. nginx 정적 파일 서빙 확인
+
+### Part 3: Code 노드 교체 (5분)
+
+- [ ] 3-1. Code 노드 열기
+- [ ] 3-2. v20.0 코드 붙여넣기
+- [ ] 3-3. 저장
+
+### Part 4: 품질 체크 노드 추가 (5분)
+
+- [ ] 4-1. Shotstack Polling 다음에 Code 노드 추가
+- [ ] 4-2. 품질 체크 코드 붙여넣기
+
+### Part 5: 통합 테스트 (10분)
+
+- [ ] 5-1. Manual Trigger 클릭
+- [ ] 5-2. 각 노드 출력 확인
+- [ ] 5-3. 최종 영상 재생 및 확인
+
+---
+
+## 🚀 다음 단계
+
+1. 대표님 승인 후 → 코드 작성 시작
+2. 효과음 파일 업로드 가이드 제공
+3. 통합 코드 (v20.0) 생성 및 적용
+
+대표님 검토 부탁드립니다! 🔥

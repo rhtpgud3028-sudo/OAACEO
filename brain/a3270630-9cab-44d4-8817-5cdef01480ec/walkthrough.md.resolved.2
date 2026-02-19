@@ -1,0 +1,78 @@
+# DALL-E 이미지 서버 저장 구현 완료
+
+## 요약
+
+DALL-E 이미지 임시 URL 타임아웃 문제를 서버 저장 + WebP 압축으로 해결했습니다.
+
+---
+
+## 구현 내용
+
+### 서버 설정
+
+| 항목 | 내용 |
+|------|------|
+| **upload.php** | `/var/www/html/upload.php` - PNG→WebP 압축 저장 |
+| **thumbnails** | `/var/www/html/thumbnails/` (www-data 소유) |
+| **Nginx** | PHP-FPM 블록 추가 (SSL 443) |
+| **PHP 설정** | `upload_max_filesize=10M`, `post_max_size=10M` |
+| **PHP GD** | WebP 이미지 변환용 |
+
+### n8n 노드
+
+| 노드 | 설정 |
+|------|------|
+| **썸네일 다운로드** | GET `{{ $json.url }}`, Response Format: File |
+| **썸네일 업로드** | POST `https://autoshort.site/upload.php`, Form-Data |
+| **GPT Vision 분석** | URL: `{{ $json.url }}` |
+
+### 워크플로우 순서
+
+```
+DALL-E Thumbnail → 썸네일 다운로드 → 썸네일 업로드 → GPT Vision 분석
+```
+
+---
+
+## 해결된 문제
+
+- ✅ DALL-E 임시 URL 만료 (1-2시간)
+- ✅ GPT Vision 타임아웃 (이미지 크기 2.86MB → ~200KB WebP)
+
+---
+
+## 서버 파일
+
+### /var/www/html/upload.php
+
+```php
+<?php
+$targetDir = "/var/www/html/thumbnails/";
+if (!file_exists($targetDir)) {
+    mkdir($targetDir, 0755, true);
+}
+
+$filename = "thumb_" . time() . "_" . rand(1000, 9999) . ".webp";
+$targetFile = $targetDir . $filename;
+
+$sourceImage = @imagecreatefrompng($_FILES["file"]["tmp_name"]);
+if (!$sourceImage) {
+    $sourceImage = @imagecreatefromjpeg($_FILES["file"]["tmp_name"]);
+}
+
+if ($sourceImage && imagewebp($sourceImage, $targetFile, 80)) {
+    imagedestroy($sourceImage);
+    header('Content-Type: application/json');
+    echo json_encode(["success" => true, "url" => "https://autoshort.site/thumbnails/" . $filename]);
+} else {
+    http_response_code(500);
+    echo json_encode(["success" => false, "error" => "Image conversion failed"]);
+}
+?>
+```
+
+---
+
+## 완료 일시
+
+2026-01-09 14:24 KST

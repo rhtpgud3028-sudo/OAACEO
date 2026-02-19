@@ -1,0 +1,189 @@
+# 🚀 AIASF Phase 2 종합 구현 계획서
+
+> **작성일**: 2026-01-21
+> **목표**: 1,200개 영상/월 자동 생성 (21채널 × 2개/일 × 30일)
+
+---
+
+## 📊 비용 분석 (검증 완료)
+
+| 서비스 | 월 비용 | 비고 |
+|--------|--------|------|
+| **DALL-E 3** | ~$528 | 1,200개 × 10장 × $0.044 |
+| **ElevenLabs Pro** | $99 ✅ | 840K자 필요 / 1M자 제공 (16% 여유) |
+| **Kling AI** | ~$360 | PiAPI 경유 |
+| **Shotstack** | ~$117 | 영상 합성 |
+| **LightNode** | $27 | 서버 |
+| **합계** | **~$1,131/월** | |
+
+---
+
+## ⚠️ 크리티컬 이슈 최종 정리
+
+| 이슈 | 상태 | 해결책 |
+|------|------|--------|
+| 1. YouTube 중복 콘텐츠 | ✅ 해결 | 항상 고유 콘텐츠 생성 |
+| 2. API Rate Limit | ✅ 해결 | 7계정 21채널 분산 |
+| 3. 대량 생산 탐지 | ⚠️ 모니터링 | 랜덤화 + 브랜드 분리 |
+| 4. ElevenLabs 비용 | ✅ 해결 | Pro $99로 충분 (84% 사용) |
+
+---
+
+## 📋 우선순위별 과업 리스트
+
+### 🔴 P0: 크리티컬 (Phase 2 시작 전 필수!)
+
+#### P0-1: 스케줄링 시스템 구축 (1일)
+**상태**: 🔧 진행 중 (Agent 에러로 중단됨)
+
+**완료된 작업**:
+- [x] [n8n_schedule_randomizer.js](file:///C:/Users/user/.gemini/antigravity/scratch/n8n_schedule_randomizer.js) 생성 완료
+- [x] 5060세대 핫타임존 분석 (아침 07:00-08:00 ⭐⭐⭐⭐ / 저녁 18:00-21:00 ⭐⭐⭐⭐⭐)
+- [x] 2개/일 업로드 전략 확정 (07:00 + 19:00)
+- [x] ±15분 랜덤화 로직 구현
+
+**남은 작업**:
+- [ ] n8n Schedule Trigger 설정 변경 (4시간마다 → 12시간마다)
+- [ ] n8n_schedule_randomizer.js Code 노드 연동
+- [ ] 자동 실행 테스트
+
+**n8n 설정 변경**:
+```
+Schedule Trigger 설정:
+- Trigger Interval: Hours
+- Hours Between Triggers: 12
+- Trigger at Hour: 7 (첫 실행 7시)
+- Trigger at Minute: 0
+```
+
+---
+
+#### P0-2: 7계정 21채널 구조 (3일)
+
+| 계정 | 소유자 | 채널 수 | 채널 ID |
+|------|--------|--------|---------|
+| account_1 | 본인 | 3개 | ch_1 ~ ch_3 |
+| account_2 | 본인 | 3개 | ch_4 ~ ch_6 |
+| account_3 | 본인 | 3개 | ch_7 ~ ch_9 |
+| account_4 | 가족A | 3개 | ch_10 ~ ch_12 |
+| account_5 | 가족A | 3개 | ch_13 ~ ch_15 |
+| account_6 | 가족B | 3개 | ch_16 ~ ch_18 |
+| account_7 | 가족B | 3개 | ch_19 ~ ch_21 |
+
+**작업 목록**:
+- [ ] YouTube 채널 21개 생성
+- [ ] OAuth 연동 7계정 분리 설정
+- [ ] n8n Credentials 7개 추가
+- [ ] 채널별 설정 JSON 구성
+
+---
+
+#### P0-3: TTS 음성 다양화 (2일)
+
+**목표**: 21개 채널 = 최소 7개 다른 음성 (계정당 1개)
+
+**ElevenLabs 음성 옵션**:
+| 음성 ID | 스타일 | 사용 채널 |
+|---------|--------|----------|
+| voice_1 | 따뜻한 남성 | ch_1~3 |
+| voice_2 | 신뢰감 남성 | ch_4~6 |
+| voice_3 | 친근한 여성 | ch_7~9 |
+| voice_4 | 차분한 남성 | ch_10~12 |
+| voice_5 | 밝은 여성 | ch_13~15 |
+| voice_6 | 중후한 남성 | ch_16~18 |
+| voice_7 | 부드러운 여성 | ch_19~21 |
+
+**작업 목록**:
+- [ ] ElevenLabs 음성 7개 선택/생성
+- [ ] 채널-음성 매핑 테이블 구성
+- [ ] Code 노드에 음성 라우팅 로직 추가
+
+---
+
+### 🟡 P1: 1주차
+
+| # | 과업 | 설명 | 예상 기간 |
+|---|------|------|----------|
+| 4 | 채널별 브랜드 분리 | 색상/스타일/로고 차별화 | 2일 |
+| 5 | 배치 처리 최적화 | Split in Batches + 메모리 관리 | 1일 |
+| 6 | 에러 핸들링 강화 | Error Workflow + 재시도 로직 | 1일 |
+
+---
+
+### 🟢 P2: 2주차
+
+| # | 과업 | 설명 | 예상 기간 |
+|---|------|------|----------|
+| 7 | 비용 모니터링 | API 사용량 대시보드 | 1일 |
+| 8 | 콘텐츠 중복 방지 | 주제 트래킹 시스템 | 2일 |
+| 9 | 업로드 시간 분산 | 채널별 고유 업로드 시간 | 1일 |
+
+---
+
+## 🎯 즉시 실행 항목 (P0-1 완료)
+
+### 1️⃣ n8n Schedule Trigger 설정 변경
+
+```
+현재 상태: 4시간마다 (과다!)
+변경 목표: 12시간마다 (하루 2회: 07:00, 19:00)
+
+설정값:
+- Trigger Interval: Hours
+- Hours Between Triggers: 12  
+- Trigger at Hour: 7
+- Trigger at Minute: 0
+```
+
+### 2️⃣ schedule_randomizer Code 노드 추가
+
+n8n에 새 Code 노드 추가하여 [n8n_schedule_randomizer.js](file:///C:/Users/user/.gemini/antigravity/scratch/n8n_schedule_randomizer.js) 로직 연동:
+
+```javascript
+// Schedule Trigger 다음에 Code 노드 추가
+// 현재 채널에 맞는 랜덤 시간 계산 후 Wait 노드로 전달
+```
+
+### 3️⃣ 워크플로우 활성화
+
+1. n8n 워크플로우 열기
+2. 오른쪽 상단 "Active" 스위치 ON
+3. 서버 타임존 확인 (KST = UTC+9)
+
+---
+
+## ✅ 검증 계획
+
+### 자동 테스트
+1. [n8n_schedule_randomizer.js](file:///C:/Users/user/.gemini/antigravity/scratch/n8n_schedule_randomizer.js) 단위 테스트 실행
+   ```powershell
+   cd C:\Users\user\.gemini\antigravity\scratch
+   node -e "const s = require('./n8n_schedule_randomizer.js'); console.log(s.testScheduleGeneration())"
+   ```
+
+### 수동 테스트
+1. n8n 워크플로우 Manual Trigger로 1회 실행
+2. 생성된 영상 품질 확인
+3. YouTube 업로드 성공 여부 확인
+
+---
+
+## 📁 관련 파일
+
+| 파일 | 경로 | 상태 |
+|------|------|------|
+| 스케줄러 알고리즘 | [n8n_schedule_randomizer.js](file:///C:/Users/user/.gemini/antigravity/scratch/n8n_schedule_randomizer.js) | ✅ 완료 |
+| Shotstack 빌더 | [n8n_shotstack_builder_v20.15.js](file:///C:/Users/user/.gemini/antigravity/scratch/n8n_shotstack_builder_v20.15.js) | ✅ Phase 1 완료 |
+| GPT 프롬프트 | [AIASF_GPT_Prompt_v6.15.md](file:///C:/Users/user/.gemini/antigravity/scratch/AIASF_GPT_Prompt_v6.15.md) | ✅ Phase 1 완료 |
+
+---
+
+## ❓ 대표님 결정 필요 사항
+
+1. **21개 채널명/브랜드**: 어떤 이름/테마로 할지?
+2. **가족 계정 협조**: 가족A, 가족B 본인 확인 완료?
+3. **TTS 음성 테스트**: 7개 음성 샘플 들어보고 승인?
+
+---
+
+> **다음 단계**: 대표님 승인 후 P0-1 스케줄링 시스템부터 구현 시작

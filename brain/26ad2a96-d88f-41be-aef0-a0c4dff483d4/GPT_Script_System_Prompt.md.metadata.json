@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_OTHER",
+  "summary":  "n8n GPT 스크립트 노드용 새로운 System Prompt. 스크립트와 각 문장별 이미지 프롬프트를 동시 생성하여 콘텐츠 동기화 보장.",
+  "updatedAt":  "2025-12-31T06:00:21.200837800Z"
+}

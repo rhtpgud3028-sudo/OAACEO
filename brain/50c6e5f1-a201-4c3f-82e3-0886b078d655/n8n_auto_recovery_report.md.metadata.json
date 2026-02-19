@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_OTHER",
+  "summary":  "n8n 셀프호스팅 크래시 원인(메모리 부족, SQLite, 실행 데이터 누적) 분석과 PM2를 활용한 자동 복구 솔루션 보고서. 즉시 적용 가능한 명령어 포함.",
+  "updatedAt":  "2025-12-30T08:18:09.260136700Z"
+}
