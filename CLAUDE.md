@@ -7,7 +7,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 매 세션 시작 시 사용자가 작업 지시를 하기 전에:
 1. 이 CLAUDE.md를 읽었으면 `scratch/프로젝트_위키_통합.md`도 반드시 읽을 것
 2. 읽은 후 "위키 확인 완료. 현재 단계: [현재 상태] / 오늘 할 일: [미완료 항목]" 보고
-3. 서버(38.60.220.9) SSH 접속하여 PM2 상태, 백업 확인
+3. n8n 서버 상태 확인 (HTTP): `curl http://38.60.220.9:5678/healthz`
+
+### 슬래시 커맨드 (3종)
+| 커맨드 | 용도 |
+|--------|------|
+| `/start` | 세션 시작: 백업→위키읽기→서버확인→상태보고 |
+| `/recheck` | 컨텍스트 복구: 위키재읽기→대화정리→보고 |
+| `/wrap` | 세션 종료: 백업→헤더갱신→작업요약→push |
 
 ---
 
@@ -26,15 +33,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | 사용자 | root |
 | SSH 키 | ~/.ssh/id_rsa |
 | n8n URL | http://38.60.220.9:5678 |
+| n8n API Key | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwZDRkODUzNy1mOTg2LTRjZmMtYjNlYS1kMDBiYjE4ZmI4OWEiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzcxNjczMjU1fQ.EvEuGD-WYbfQ4X2-c_ytjqrOW6FjWNKbanRQjffRBXU` |
 | 백업 경로 | /root/.n8n/backups/ |
 
 ```bash
+# SSH 접속
 ssh -i ~/.ssh/id_rsa root@38.60.220.9
+
+# n8n API 사용 (SSH 없이 워크플로우 수정 가능)
+curl -H "X-N8N-API-KEY: [위 API Key]" http://38.60.220.9:5678/api/v1/workflows
 ```
 
 ### 현재 단계
 
-- **Phase 2 런칭 준비** / Shotstack Code 노드: **v20.37**
+- **Phase 2 런칭 준비** / Shotstack Code 노드: **v20.38** (n8n 적용 완료 2026-02-21)
 - GPT 프롬프트: **v6.17** (주제 적응형)
 - GPT 이미지 프롬프트: **v2** (핵심어 추출 + 3단계 검증)
 - Topic Override: **v3.0** (7개 카테고리 최적화 + 폴백 주제)
@@ -42,8 +54,9 @@ ssh -i ~/.ssh/id_rsa root@38.60.220.9
 - AI Persona Router: **v5.0** (7개 유명인 페르소나)
 - **채널 자동순환**: 21채널 × 2회/일 = 42영상/일 (34분 간격 라운드로빈)
 - 7개 카테고리: **건강/재테크/요리·건강식/인생지혜/디지털부업/중년뷰티/스마트폰AI**
-- **v20.37 완료**: 인트로-주제 싱크 강화, TTS 65초 전체 재생, 이미지-스크립트 100% 싱크
+- **v20.38 완료**: SOUNDTRACK-TRIM-FIX (미지원 trim 속성 제거), n8n API로 직접 적용 완료
 - **v5.0 완료**: 카테고리 최적화 (전원→요리·건강식으로 변경 확정)
+- **N8N_SECURE_COOKIE=false**: PM2 환경변수 영구 저장 (HTTP 접속 복구)
 - **Schedule 34분 완료**: DB 패치 적용, n8n 재시작
 - **채널명 21개 확정**: 7카테고리 × 3채널 (영문 로고명 포함)
 - **업로드시간 최적화 설계 완료**: 팩트 기반 21채널 개별 스케줄 (미구현)
@@ -67,7 +80,7 @@ ssh -i ~/.ssh/id_rsa root@38.60.220.9
 Schedule Trigger (34분) → Channel Auto-Rotation (21채널 순환)
   → Branding Router v5.0 → AI Persona v5.0 → Topic Override v3.0
   → GPT Script v6.17 → ElevenLabs TTS → DALL-E 3 × 12
-  → Kling Intro → Shotstack Render (v20.37) → YouTube Upload
+  → Kling Intro → Shotstack Render (v20.38) → YouTube Upload
 ```
 
 ### 영상 구조
@@ -144,15 +157,15 @@ Schedule Trigger (34분) → Channel Auto-Rotation (21채널 순환)
 **n8n 노드 코드 (.js)**
 | 파일 | 역할 |
 |------|------|
-| `n8n_shotstack_builder_v20.33.js` | 현행 Shotstack 렌더 코드 (최신) |
-| `n8n_branding_router_v4.js` | 21채널 브랜딩/보이스/CTA 동적 라우팅 |
-| `n8n_topic_override_v2.1.js` | 주제 오버라이드 노드 |
+| `n8n_shotstack_builder_v20.38.js` | 현행 Shotstack 렌더 코드 (최신, n8n 적용 완료) |
+| `n8n_branding_router_v5.js` | 21채널 브랜딩/보이스/CTA 동적 라우팅 |
+| `n8n_topic_override_v3.js` | 주제 오버라이드 노드 |
 | `n8n_ai_persona_prompts.js` | 21채널 AI 페르소나 |
 | `n8n_channel_configs.js` | 채널별 설정 |
 | `n8n_schedule_randomizer.js` | 업로드 스케줄 랜덤화 |
 | `n8n_parse_prompts_verified.js` | GPT 응답 파싱 |
 | `n8n_quality_check_node.js` | 품질 체크 |
-| `n8n_shotstack_builder_v20.~v20.32.js` | 이전 버전들 (히스토리 참고용) |
+| `n8n_shotstack_builder_v20.~v20.37.js` | 이전 버전들 (히스토리 참고용) |
 
 **GPT 프롬프트**
 | 파일 | 역할 |
@@ -183,6 +196,14 @@ Schedule Trigger (34분) → Channel Auto-Rotation (21채널 순환)
 | `ICT_Indicator_V2_KSH.pine` | 최신 인디케이터 |
 | 기타 V1~V3 | 이전 버전 (히스토리) |
 
+### .claude/commands/ - 슬래시 커맨드
+
+| 파일 | 역할 |
+|------|------|
+| `start.md` | `/start` 세션 시작 워크플로우 |
+| `recheck.md` | `/recheck` 컨텍스트 복구 워크플로우 |
+| `wrap.md` | `/wrap` 세션 종료 워크플로우 |
+
 ### .agent/workflows/ - 시스템 규칙
 
 | 파일 | 역할 |
@@ -211,7 +232,7 @@ Schedule Trigger (34분) → Channel Auto-Rotation (21채널 순환)
 
 ### scratch/backup_wiki/ - 위키 백업
 
-`프로젝트_위키_통합_backup_YYYYMMDD_HHMM.md` 형식, 20241224~20260205 (30+개)
+`프로젝트_위키_통합_backup_YYYYMMDD_HHMM.md` 형식, 20241224~20260221 (30+개)
 `workflows_backup_YYYYMMDD_HHMM/` 폴더 5세트 (각각 ict-trading-rules.md 등 포함)
 
 ---
@@ -221,4 +242,32 @@ Schedule Trigger (34분) → Channel Auto-Rotation (21채널 순환)
 > **전체 위키 원본은 `scratch/프로젝트_위키_통합.md`에 있음.**
 > 세부 규칙, 버전 히스토리, 크리티컬 이슈, 위반 사례, 일일 체크리스트 등
 > 모든 상세 내용 확인 시 **반드시 이 파일을 읽을 것.**
-> 작업 시작 시 "위키 파일 확인해줘" 명령으로 전체 컨텍스트 로드.
+> 작업 시작 시 `/start` 또는 "위키 파일 확인해줘" 명령으로 전체 컨텍스트 로드.
+
+---
+
+## 섹션 5: 멀티기기 동기화
+
+### 데이터 흐름
+```
+Claude Code 웹 → /wrap push → GitHub Action 자동 병합 → main
+    → Windows 작업스케줄러 (30분) → Google Drive 폴더 pull
+        → Google Drive 자동 동기화 → 휴대용 노트북 수신
+```
+
+### n8n API 활용 (SSH 없이 워크플로우 수정)
+```bash
+# 워크플로우 목록 조회
+curl -H "X-N8N-API-KEY: [API_KEY]" http://38.60.220.9:5678/api/v1/workflows
+
+# 특정 워크플로우 조회
+curl -H "X-N8N-API-KEY: [API_KEY]" http://38.60.220.9:5678/api/v1/workflows/{WF_ID}
+
+# 워크플로우 업데이트 (PUT, 필수 키: name, nodes, connections, settings)
+curl -X PUT -H "X-N8N-API-KEY: [API_KEY]" -H "Content-Type: application/json" \
+  -d '{"name":"...","nodes":[...],"connections":{...},"settings":{...}}' \
+  http://38.60.220.9:5678/api/v1/workflows/{WF_ID}
+```
+
+### 상세 가이드
+`scratch/AIASF_멀티기기_동기화_셋업_가이드.md` 참조
