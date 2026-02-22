@@ -24,11 +24,43 @@ def get_workflow():
     response.raise_for_status()
     return response.json()
 
+def clean_nodes(nodes):
+    """노드에서 불필요한 필드 제거"""
+    cleaned = []
+    for node in nodes:
+        # 필수 필드만 유지
+        clean_node = {
+            'name': node['name'],
+            'type': node['type'],
+            'position': node['position'],
+            'parameters': node['parameters']
+        }
+        # 선택적 필드 추가
+        if 'typeVersion' in node:
+            clean_node['typeVersion'] = node['typeVersion']
+        if 'credentials' in node:
+            clean_node['credentials'] = node['credentials']
+        if 'disabled' in node:
+            clean_node['disabled'] = node['disabled']
+        cleaned.append(clean_node)
+    return cleaned
+
 def update_workflow(workflow_data):
     """워크플로우 업데이트"""
-    # PUT 요청 시 불필요한 필드 제거
-    allowed_fields = ['name', 'nodes', 'connections', 'settings', 'staticData', 'tags', 'pinData']
-    clean_data = {k: v for k, v in workflow_data.items() if k in allowed_fields}
+    # 노드 정리
+    workflow_data['nodes'] = clean_nodes(workflow_data['nodes'])
+
+    # PUT 요청 시 필수 필드만 전송
+    clean_data = {
+        'name': workflow_data['name'],
+        'nodes': workflow_data['nodes'],
+        'connections': workflow_data['connections'],
+        'settings': workflow_data.get('settings', {}),
+        'staticData': workflow_data.get('staticData')
+    }
+
+    # None 값 제거
+    clean_data = {k: v for k, v in clean_data.items() if v is not None}
 
     url = f"{N8N_URL}/api/v1/workflows/{WORKFLOW_ID}"
     response = requests.put(url, headers=headers, json=clean_data)
