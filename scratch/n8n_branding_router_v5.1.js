@@ -249,7 +249,7 @@ const CHANNEL_FULL_CONFIGS = {
 const BGM_LIBRARY = {
     "건강": "https://autoshort.site/bgm/health_calm.mp3",
     "재테크": "https://autoshort.site/bgm/finance_upbeat.mp3",
-    "전원": "https://autoshort.site/bgm/rural_peaceful.mp3",
+    "전원": "https://autoshort.site/bgm/lifestyle_peaceful.mp3",
     "인생지혜": "https://autoshort.site/bgm/lifestyle_peaceful.mp3",
     "디지털부업": "https://autoshort.site/bgm/finance_upbeat.mp3",
     "중년뷰티": "https://autoshort.site/bgm/health_calm.mp3",
