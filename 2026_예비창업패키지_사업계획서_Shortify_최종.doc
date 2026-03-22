@@ -1,0 +1,477 @@
+﻿<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Export HTML to Word</title><style>@page { size: 21cm 29.7cm; margin: 2cm 2cm 2cm 2cm; mso-page-orientation: portrait; }body { font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; font-size: 10.5pt; line-height: 1.5; }table { border-collapse: collapse; width: 100%; margin-bottom: 15px; font-size: 10pt; }th, td { border: 1px solid black; padding: 6px; vertical-align: middle; }th { background-color: #f2f2f2; font-weight: bold; text-align: center; }h1 { text-align: center; font-size: 18pt; margin-bottom: 25px; }h2 { font-size: 13pt; border-bottom: 2px solid black; padding-bottom: 4px; margin-top: 20px; }h3 { font-size: 11.5pt; margin-top: 15px; }h4 { font-size: 10.5pt; margin-top: 15px; margin-bottom: 5px; }ul { margin-top: 5px; margin-bottom: 15px; padding-left: 20px; }li { margin-bottom: 3px; }.text-center { text-align: center; }.text-bold { font-weight: bold; }.img-placeholder { text-align: center; border: 2px dashed #adb5bd; background-color: #f8f9fa; color: #495057; font-weight: bold; height: 180px; line-height: 180px; margin: 15px 0; font-size: 11pt; }</style></head><body>
+            
+            <h1>예비창업패키지 예비창업자 사업계획서</h1>
+            
+            <h3>□ 일반현황</h3>
+            <table>
+                <colgroup>
+                    <col style="width: 25%;">
+                    <col style="width: 75%;">
+                </colgroup>
+                <tbody><tr>
+                    <th class="text-center">창업아이템명</th>
+                    <td class="text-bold">B2B 브랜드 맞춤형 숏폼 자동 생성 및 다중 플랫폼 매개 포털, ‘Shortify’</td>
+                </tr>
+                <tr>
+                    <th class="text-center">산출물<br>(협약기간 내 목표)</th>
+                    <td>
+                        1. 기업 브랜드/트렌드 데이터 수집·매개 엔진 (API 1식)<br>
+                        2. B2B 숏폼 자동 렌더링 및 다중 매체 배포 웹 포털 (웹사이트 1식)
+                    </td>
+                </tr>
+                <tr>
+                    <th class="text-center">직업</th>
+                    <td>기업 마케팅/프로젝트 총괄 디렉터</td>
+                </tr>
+                <tr>
+                    <th class="text-center">기업(예정)명</th>
+                    <td>Shortify (쇼티파이)</td>
+                </tr>
+            </tbody></table>
+
+            <h4>[ 팀 구성 현황 (대표자 본인 제외) ]</h4>
+            <table>
+                <colgroup>
+                    <col style="width: 10%;">
+                    <col style="width: 15%;">
+                    <col style="width: 25%;">
+                    <col style="width: 35%;">
+                    <col style="width: 15%;">
+                </colgroup>
+                <tbody><tr>
+                    <th>순번</th>
+                    <th>직위</th>
+                    <th>담당 업무</th>
+                    <th>보유 역량 (경력 및 학력 등)</th>
+                    <th>구성 상태</th>
+                </tr>
+                <tr>
+                    <td class="text-center">1</td>
+                    <td class="text-center">이사</td>
+                    <td class="text-center">백엔드 인프라 / API 아키텍처</td>
+                    <td>OO학 학사, 클라우드/서버리스 인프라 구축 경력(O년 이상)</td>
+                    <td class="text-center">완료</td>
+                </tr>
+                <tr>
+                    <td class="text-center">2</td>
+                    <td class="text-center">팀장</td>
+                    <td class="text-center">B2B 파트너십 및 온보딩</td>
+                    <td>OO학 학사, 에이전시 B2B 마케팅/운영 경력(O년 이상)</td>
+                    <td class="text-center">예정(’26.07)</td>
+                </tr>
+            </tbody></table>
+
+            <h3>□ 창업 아이템 개요(요약)</h3>
+            <table>
+                <colgroup>
+                    <col style="width: 20%;">
+                    <col style="width: 80%;">
+                </colgroup>
+                <tbody><tr>
+                    <th class="text-center">명 칭</th>
+                    <td class="text-bold">Shortify (쇼티파이)</td>
+                </tr>
+                <tr>
+                    <th class="text-center">범 주</th>
+                    <td>포털 및 기타 인터넷 정보 매개 서비스업 (63120)</td>
+                </tr>
+                <tr>
+                    <th class="text-center">아이템 개요</th>
+                    <td class="text-bold">기업의 원시 데이터(기획안/브랜드 가이드)와 인터넷 실시간 트렌드 데이터를 매개하여, 타깃 고객 맞춤형 숏폼 콘텐츠를 자동 생산 및 다중 플랫폼에 배포하는 B2B 특화 웹 포털 서비스</td>
+                </tr>
+                <tr>
+                    <th class="text-center">문제 인식<br>(Problem)</th>
+                    <td>
+                        <strong>[현황]</strong> B2B 시장의 숏폼 수요 폭발. 반면 인력 중심의 에이전시 제작 구조로 인해 막대한 <strong>'제작비/리드타임 병목현상'</strong> 발생 (건당 30만 원, 72시간 소요)<br>
+                        <strong>[한계]</strong> 기존 범용 AI 비디오 툴은 기업별 고유 <strong>'브랜드 가이드(톤앤매너, 리스크 키워드)'를 강제할 수 없어</strong> 실무 도입률 저조<br>
+                        <strong>[필요성]</strong> 기획부터 배포까지 파편화된 과정을 일원화하는 완전 자동화 포털 필요
+                    </td>
+                </tr>
+                <tr>
+                    <th class="text-center">실현 가능성<br>(Solution)</th>
+                    <td>
+                        <strong>[개발계획]</strong> 기획안 입력 즉시 6개 특화 AI 에이전트(대본-비주얼-음성-음악-편집-배포)가 순차/병렬 협업하는 LangGraph 기반 매개 파이프라인 포털 구축<br>
+                        <strong>[차별성]</strong> 1. B2B 전용 <strong>'Brand Safety Engine'</strong> 탑재(기업 아이덴티티 강제 적용 및 리스크 원천 차단) 2. 백업 API 오케스트레이션으로 무중단 SLA 보장
+                    </td>
+                </tr>
+                <tr>
+                    <th class="text-center">성장전략<br>(Scale-up)</th>
+                    <td>
+                        <strong>[진입전략]</strong> 마케팅 대행사 대상 화이트라벨 제공 (Niche to Mass 레버리지)<br>
+                        <strong>[수익모델]</strong> 생성 볼륨 기반 종량제 + SaaS 구독 하이브리드 (공헌 이익률 85%)<br>
+                        <strong>[스케일업]</strong> 배포된 숏폼의 '소셜 성과 데이터'를 AI가 재학습하는 <strong>데이터 플라이휠(Data Flywheel)</strong>을 구축하여 압도적 성과 도출 및 고객 이탈 원천 차단
+                    </td>
+                </tr>
+                <tr>
+                    <th class="text-center">팀 구성<br>(Team)</th>
+                    <td>
+                        <strong>[대표자]</strong> IT개발 에이전시 6년 운영경험 보유 및 국내 최상위권 생성형 AI 프롬프트 엔지니어링 역량 보유 <strong>(현장 도메인 전문성과 AI 기술 통제력의 융합)</strong>
+                    </td>
+                </tr>
+            </tbody></table>
+
+            <br>
+            <h2>1. 문제 인식 (Problem)_창업 아이템의 필요성</h2>
+            
+            <h3>ㅇ 창업 아이템의 국내·외 시장 현황 및 문제점</h3>
+            <p><strong>1) 폭발하는 B2B 숏폼 수요와 인력 기반 구조의 '치명적 병목(Bottleneck)'</strong></p>
+            <ul>
+                <li>숏폼 콘텐츠는 이커머스 및 D2C 브랜드의 생존 필수재가 되었음. 그러나 기존의 콘텐츠 매개 구조는 '기획자 ↔ 대행사 ↔ 제작사 ↔ 소셜 매체'로 파편화되어 있음.</li>
+                <li>이로 인한 잦은 소통 오류, 수정, 시차 발생은 <strong>'원가 상승'과 '리드타임 지연'이라는 구조적 병목</strong>을 유발함. (기존 숏폼 1건당 평균 제작비 30만 원 / 리드타임 72시간 소요)</li>
+            </ul>
+
+            <p><strong>2) 기존 글로벌 범용 AI 툴의 '실무 도입 불가'라는 한계성</strong></p>
+            <ul>
+                <li>시중의 AI 비디오 생성기(HeyGen 등)는 1인 크리에이터나 가로형 프레젠테이션에 국한됨. B2B 기업이 외부 매체에 유통할 때 가장 핵심적인 요건인 <strong>'브랜드 세이프티(Brand Safety)'</strong>를 보장하지 못함. 기업 고유의 지정 컬러, 폰트, 금지/혐오 표현을 시스템적으로 강제할 수 없어 결국 사람의 수동 재검수가 수반됨.</li>
+            </ul>
+
+            <h3>ㅇ 문제 해결을 위한 창업 아이템의 개발 필요성</h3>
+            <p><strong>1) 단순 툴(SaaS)을 넘어선 '콘텐츠 정보 매개 포털'로의 대전환</strong></p>
+            <ul>
+                <li>다품종 소량의 영상을 대량 유통해야 하는 롱테일(Long-tail) 문제를 해결하기 위해, 원천 정보(기획안/URL)를 인터넷 트렌드와 결합하여 각 소셜 플랫폼 스펙에 맞게 즉각 배포하는 <strong>중앙 집중형 '정보 매개 포털'</strong>이 필수적임.</li>
+            </ul>
+
+            <p><strong>2) End-to-End 완전 자동화를 통한 '초압도적 단위 경제성' 창출</strong></p>
+            <ul>
+                <li>입력부터 배포까지 Zero-Touch 워크플로우를 구현하여, 30만 원의 외주 원가를 1,200원(AI API 렌더링 비용)으로 혁신. 이를 통해 고객과 자사가 모두 승리하는 이익 구조를 창출해야 함.</li>
+            </ul>
+
+            <div class="img-placeholder">
+                [여기에 인포그래픽 삽입: 옵션 A - 재무/수치 타격용 (01_Shortify_OptionA_Economics.png)]
+                <span>※ 문서 레이아웃에 맞춰 세로 높이를 조절(납작하게)하여 배치</span>
+            </div>
+
+            <br>
+            <h2>2. 실현 가능성 (Solution)_창업 아이템의 개발 계획</h2>
+            
+            <h3>ㅇ 아이디어를 제품·서비스로 개발 또는 구체화 하고자 하는 계획</h3>
+            <p><strong>1) 6개 특화 멀티 AI 에이전트 기반 '자동 매개 파이프라인' 구축</strong></p>
+            <ul>
+                <li>본 아이템 ‘Shortify’는 LangGraph 프레임워크 기반의 DAG 아키텍처를 채택, 6개의 AI 에이전트가 협업하는 파이프라인을 구축함.<br>
+                ① <strong>스크립트 (GPT-5.2)</strong>: 인터넷 트렌드 크롤링 및 후킹 대본 생성<br>
+                ② <strong>비주얼 (DALL-E 3 / Kling)</strong>: 최적화 이미지 및 짧은 영상 클립 생성<br>
+                ③ <strong>보이스 (OpenAI TTS)</strong>: B2B 톤앤매너 부합 다국어 나레이션 합성<br>
+                ④ <strong>뮤직 (Suno AI)</strong>: 영상 무드 분석 및 로열티 프리 배경음악 매칭<br>
+                ⑤ <strong>에디팅 (Shotstack API)</strong>: 밀리초(ms) 단위 동적 자막 및 트랜지션 렌더링<br>
+                ⑥ <strong>퍼블리싱 (자체 API)</strong>: 플랫폼별(비율/해상도) 맞춤 변환 및 실시간 매개 송출</li>
+                <li>클라우드 기반 웹 포털 대시보드와 AWS 서버리스 분산 렌더링 환경을 구축하여 일 1,000건 이상의 동시 처리(스케일 아웃)가 가능한 v1.0 버전을 협약 내 런칭함.</li>
+            </ul>
+
+            <div class="img-placeholder">
+                [여기에 인포그래픽 삽입: 옵션 B - 기술/아키텍처 타격용 (02_Shortify_OptionB_Architecture.png)]
+                <span>※ 문서 레이아웃에 맞춰 세로 높이를 조절(납작하게)하여 배치</span>
+            </div>
+
+            <h3>ㅇ 창업 아이템의 차별성 및 경쟁력 확보 전략</h3>
+            <p><strong>1) 초격차 해자(Moat): B2B 전용 'Brand Safety Engine' 내재화</strong></p>
+            <ul>
+                <li>타사의 단순 API 래퍼(Wrapper)와 구분되는 독보적 코어 기술. 기업 가입 시 브랜드 아이덴티티(HEX 컬러, 로고, 폰트, 금지 키워드)를 DB화하여, 렌더링 과정의 <strong>프롬프트 레벨에 동적으로 강제 주입(Dynamic Injection)</strong>함. 출력 직전 AI가 법적/윤리적 리스크를 1차 교차 검수하여 B2B 고객의 불안을 원천 차단.</li>
+            </ul>
+            <p><strong>2) 무중단 Fallback 오케스트레이션</strong></p>
+            <ul>
+                <li>특정 AI 모델 서버 장애 시 대안 모델(예: DALL-E 3 → Stable Diffusion)로 자동 라우팅되는 백업 시스템을 구축하여 99.9% SLA를 보장함.</li>
+            </ul>
+
+            <h4>[ 사업추진 일정(협약기간 내) ]</h4>
+            <table>
+                <colgroup>
+                    <col style="width: 10%;">
+                    <col style="width: 30%;">
+                    <col style="width: 20%;">
+                    <col style="width: 40%;">
+                </colgroup>
+                <tbody><tr>
+                    <th>구분</th>
+                    <th>추진 내용</th>
+                    <th>추진 기간</th>
+                    <th>세부 내용</th>
+                </tr>
+                <tr>
+                    <td class="text-center">1</td>
+                    <td class="text-center">인프라 설계 및 인력 채용</td>
+                    <td class="text-center">’26.06 ~ ’26.07</td>
+                    <td>AWS 분산 처리 구축 및 핵심 백엔드 인력 채용</td>
+                </tr>
+                <tr>
+                    <td class="text-center">2</td>
+                    <td class="text-center">Brand Safety Engine 개발</td>
+                    <td class="text-center">’26.07 ~ ’26.09</td>
+                    <td>브랜드 정책 강제 주입 로직 구현 및 크롤링 연동</td>
+                </tr>
+                <tr>
+                    <td class="text-center">3</td>
+                    <td class="text-center">에이전트 파이프라인 통합</td>
+                    <td class="text-center">’26.09 ~ ’26.11</td>
+                    <td>영상 렌더링 속도 최적화 및 매체 API 연동</td>
+                </tr>
+                <tr>
+                    <td class="text-center">4</td>
+                    <td class="text-center">MVP 클로즈드 베타(CBT)</td>
+                    <td class="text-center">’26.11 ~ ’26.12</td>
+                    <td>B2B 파트너(대행사) 대상 PoC 및 UX 피드백 반영</td>
+                </tr>
+                <tr>
+                    <td class="text-center">5</td>
+                    <td class="text-center">정식 런칭 및 대시보드 배포</td>
+                    <td class="text-center">’27.01</td>
+                    <td>유료 요금제 오픈 및 데이터 환류 대시보드 활성화</td>
+                </tr>
+            </tbody></table>
+
+            <h4>[ 1단계 정부지원사업비 집행계획 ]</h4>
+            <table>
+                <colgroup>
+                    <col style="width: 20%;">
+                    <col style="width: 55%;">
+                    <col style="width: 25%;">
+                </colgroup>
+                <tbody><tr>
+                    <th>비 목</th>
+                    <th>산출 근거</th>
+                    <th>정부지원사업비(원)</th>
+                </tr>
+                <tr>
+                    <td class="text-center">외주용역비</td>
+                    <td>▪ 포털 UI/UX 구축 및 프론트엔드 대시보드 외주 개발</td>
+                    <td class="text-center">12,000,000</td>
+                </tr>
+                <tr>
+                    <td class="text-center">재료비</td>
+                    <td>▪ 초기 멀티 에이전트 파이프라인 테스트용 AI API 크레딧</td>
+                    <td class="text-center">5,000,000</td>
+                </tr>
+                <tr>
+                    <td class="text-center">기계장치</td>
+                    <td>▪ 포털 구동 및 AI 분산 렌더링용 클라우드(AWS) 선결제</td>
+                    <td class="text-center">2,000,000</td>
+                </tr>
+                <tr>
+                    <td class="text-center">특허권등</td>
+                    <td>▪ '브랜드 세이프티 엔진 기반 숏폼 매개 시스템' 국내 특허 출원</td>
+                    <td class="text-center">1,000,000</td>
+                </tr>
+                <tr>
+                    <th colspan="2" class="text-center">합 계</th>
+                    <th class="text-center">20,000,000</th>
+                </tr>
+            </tbody></table>
+
+            <h4>[ 2단계 정부지원사업비 집행계획 ]</h4>
+            <table>
+                <colgroup>
+                    <col style="width: 20%;">
+                    <col style="width: 55%;">
+                    <col style="width: 25%;">
+                </colgroup>
+                <tbody><tr>
+                    <th>비 목</th>
+                    <th>산출 근거</th>
+                    <th>정부지원사업비(원)</th>
+                </tr>
+                <tr>
+                    <td class="text-center">외주용역비</td>
+                    <td>▪ 산업군별 B2B 전용 숏폼 템플릿(레이아웃) 50종 모션 외주 제작</td>
+                    <td class="text-center">8,000,000</td>
+                </tr>
+                <tr>
+                    <td class="text-center">재료비</td>
+                    <td>▪ 상용화 단계 대용량 렌더링 서버 및 백업 API 크레딧</td>
+                    <td class="text-center">7,000,000</td>
+                </tr>
+                <tr>
+                    <td class="text-center">지급수수료</td>
+                    <td>▪ 서비스 이용약관 및 정보 매개 저작권 이슈 관련 법률 자문</td>
+                    <td class="text-center">2,000,000</td>
+                </tr>
+                <tr>
+                    <td class="text-center">광고선전비</td>
+                    <td>▪ 포털 정식 런칭 B2B 타겟 퍼포먼스 마케팅 비용</td>
+                    <td class="text-center">3,000,000</td>
+                </tr>
+                <tr>
+                    <th colspan="2" class="text-center">합 계</th>
+                    <th class="text-center">20,000,000</th>
+                </tr>
+            </tbody></table>
+
+            <br>
+            <h2>3. 성장전략 (Scale-up)_사업화 추진 전략</h2>
+            
+            <h3>ㅇ 경쟁제품·경쟁사 분석 및 목표 시장 진입 전략</h3>
+            <ul>
+                <li><strong>(경쟁 우위)</strong> 글로벌 경쟁사들은 가로형/프레젠테이션 위주로 커머스 마케팅에 부적합함. Shortify는 K-트렌드 최적화, 세로형 숏폼 특화, 브랜드 통제력 강화라는 <strong>'대체 불가능한 B2B 매개 플랫폼'</strong> 포지션을 확보함.</li>
+            </ul>
+            
+            <div class="img-placeholder">
+                [여기에 인포그래픽 삽입: 옵션 F - 경쟁 우위 (06_Shortify_OptionF_CompetitiveAdvantage.png)]
+            </div>
+
+            <ul>
+                <li><strong>(진입 전략: Niche to Mass)</strong> 가장 고통이 큰 타깃인 '마케팅 대행사'를 1차 공략함. 대행사에게 클라이언트별 계정 관리가 가능한 <strong>'화이트라벨(White-label)'</strong> 요금제를 제안하여, 1개 대행사 유치로 수십 개의 브랜드 파이프라인을 획득하는 강력한 레버리지 전략 구사.</li>
+            </ul>
+
+            <div class="img-placeholder">
+                [여기에 인포그래픽 삽입: 옵션 D - 시장/진입 전략 (04_Shortify_OptionD_GoToMarket.png)]
+            </div>
+
+            <h3>ㅇ 창업 아이템의 비즈니스 모델 및 자금확보 전략</h3>
+            <ul>
+                <li><strong>(하이브리드 SaaS)</strong> 기본 월정액 구독(월 30만 원)에 대량 생산 고객을 위한 종량제 크레딧 과금을 결합. 영상 1건 렌더링 원가가 약 1,200원에 불과하여 <strong>공헌 이익률 85% 이상</strong>의 극강의 수익 구조 완성.</li>
+                <li><strong>(AI 데이터 플라이휠 락인 구조)</strong> 소셜 매체로 배포된 숏폼의 조회수/전환율 데이터를 포털 API로 환류(Feedback)받아 고성과 패턴을 AI가 재학습함. <strong>플랫폼을 사용할수록 마케팅 효율이 상승하므로 고객 이탈(Churn)이 원천 차단됨.</strong></li>
+            </ul>
+
+            <div class="img-placeholder">
+                [여기에 인포그래픽 삽입: 옵션 C - 플랫폼/플라이휠 (03_Shortify_OptionC_Flywheel.png)]
+            </div>
+
+            <h3>ㅇ 사업 확장을 위한 투자유치(자금확보) 전략 및 중장기 로드맵</h3>
+            <ul>
+                <li><strong>(자금확보 및 스케일업)</strong> 예창패 협약 기간 내 초기 고객 25개사를 확보해 월 매출 1천만 원(BEP)을 조기 달성. 이 지표를 바탕으로 협약 종료 직후 Seed 라운드(5억 원) 투자를 즉시 유치하고 TIPS에 진입함.</li>
+            </ul>
+
+            <div class="img-placeholder">
+                [여기에 인포그래픽 삽입: 옵션 E - 로드맵/비전 (05_Shortify_OptionE_Roadmap.png)]
+            </div>
+
+            <h3>ㅇ 중장기적 사회적 가치 도입계획</h3>
+            <ul>
+                <li><strong>(환경)</strong> 물리적 촬영으로 인한 탄소/폐기물을 디지털 AI 렌더링으로 100% 대체하여 '클린 테크(에코)'를 실현.</li>
+                <li><strong>(사회)</strong> 대행사를 쓸 예산이 없는 영세 소상공인에게 저비용 고효율 도구를 제공하여 '마케팅 양극화'를 해소함.</li>
+            </ul>
+
+            <div class="img-placeholder">
+                [여기에 인포그래픽 삽입: 옵션 G - ESG/사회적 가치 (07_Shortify_OptionG_ESG_Impact.png)]
+            </div>
+
+            <h4>[ 사업추진 일정(전체 사업단계) ]</h4>
+            <table>
+                <colgroup>
+                    <col style="width: 10%;">
+                    <col style="width: 30%;">
+                    <col style="width: 20%;">
+                    <col style="width: 40%;">
+                </colgroup>
+                <tbody><tr>
+                    <th>구분</th>
+                    <th>추진 내용</th>
+                    <th>추진 기간</th>
+                    <th>세부 내용</th>
+                </tr>
+                <tr>
+                    <td class="text-center">1</td>
+                    <td class="text-center">포털 코어 엔진 개발 (Pre-Seed)</td>
+                    <td class="text-center">’26년 상반기</td>
+                    <td>예창패 기반 멀티 AI 파이프라인 및 매개 포털 MVP 런칭</td>
+                </tr>
+                <tr>
+                    <td class="text-center">2</td>
+                    <td class="text-center">B2B 유료화 및 PMF 검증 (Seed)</td>
+                    <td class="text-center">’26년 하반기</td>
+                    <td>초기 50개 파트너 확보 및 '데이터 플라이휠(환류)' 시스템 구축</td>
+                </tr>
+                <tr>
+                    <td class="text-center">3</td>
+                    <td class="text-center">다국어/글로벌 인프라 확장 (Pre-A)</td>
+                    <td class="text-center">’27년 상반기</td>
+                    <td>Seed 투자 유치 완료, 북미/동남아 트렌드 크롤링 엔진 다국어 지원</td>
+                </tr>
+                <tr>
+                    <td class="text-center">4</td>
+                    <td class="text-center">No.1 글로벌 콘텐츠 매개 포털 (Series A)</td>
+                    <td class="text-center">’28년 이후</td>
+                    <td>글로벌 크로스보더 커머스 시장 진출, AI 에이전시 생태계의 중앙 허브</td>
+                </tr>
+            </tbody></table>
+
+            <br>
+            <h2>4. 팀 구성 (Team)_대표자 및 팀원 구성 계획</h2>
+            
+            <h3>ㅇ 대표자 보유 역량(경영 능력, 기술력, 노하우 등)</h3>
+            <p><strong>1) 시장 병목을 체득한 '도메인 전문가' (IT개발 에이전시 운영경험 보유)</strong></p>
+            <ul>
+                <li>과거 6년간(2020~2026) IT 에이전시를 직접 운영하며 연 50회 이상의 B2B 미팅과 프로젝트를 총괄함. 파편화된 소통과 리소스의 비효율이 어떻게 원가를 상승시키고 신뢰를 무너뜨리는지 최전선에서 뼈저리게 체득함. 과거의 폐업은 본 자동화 SaaS 포털을 기획하게 된 완벽한 '문제 정의(Problem Definition)' 과정이었음.</li>
+            </ul>
+
+            <p><strong>2) 압도적 실행력: 국내 최상위권 프롬프트 엔지니어링 및 기술 통제력</strong></p>
+            <ul>
+                <li>외주 개발사에 의존했던 과거를 반면교사 삼아, 지난 2년간 AI 아키텍처 및 파운데이션 모델 실무 적용 연구에 매진함. 단순 프롬프팅을 넘어 LangChain/LangGraph로 비즈니스 파이프라인을 자동화하는 최상위권 기술 통제력을 확보함. AI 코딩 어시스턴트를 활용해 MVP의 80%를 단독으로 구현하는 강력한 실행력을 갖춤.</li>
+            </ul>
+
+            <h3>ㅇ 팀원 구성 계획 및 업무 파트너 현황</h3>
+            <ul>
+                <li><strong>(인력 구성)</strong> 초기 3개월은 대표자의 초격차 1인 개발로 MVP 속도전을 전개. 정식 런칭 시점에 맞춰 분산 렌더링을 고도화할 'AWS 서버리스 아키텍트(이사급)'와 고객 온보딩을 담당할 'B2B 오퍼레이터(팀장급)'를 합류시킬 예정. 3명이 20명의 퍼포먼스를 내는 전사적 'AI 워크플로우' 조직 구축.</li>
+                <li><strong>(파트너십)</strong> 현재 국내 유수의 중견 마케팅 에이전시 2곳과 사전 협의를 마쳤으며, 시제품 개발 즉시 실무 테스트(PoC)를 진행하여 첫 유료 고객으로 전환시키는 강력한 파이프라인을 확보함.</li>
+            </ul>
+
+            <h4>[ 팀 구성(안) ]</h4>
+            <table>
+                <colgroup>
+                    <col style="width: 10%;">
+                    <col style="width: 15%;">
+                    <col style="width: 25%;">
+                    <col style="width: 35%;">
+                    <col style="width: 15%;">
+                </colgroup>
+                <tbody><tr>
+                    <th>구분</th>
+                    <th>직위</th>
+                    <th>담당 업무</th>
+                    <th>보유 역량 ( 경력 및 학력 등 )</th>
+                    <th>구성 상태</th>
+                </tr>
+                <tr>
+                    <td class="text-center">1</td>
+                    <td class="text-center">대표</td>
+                    <td class="text-center">포털 기획 및 AI 파이프라인 총괄</td>
+                    <td>IT개발 에이전시 운영경험 보유, 최상위 AI 프롬프트 엔지니어링</td>
+                    <td class="text-center">완료</td>
+                </tr>
+                <tr>
+                    <td class="text-center">2</td>
+                    <td class="text-center">이사</td>
+                    <td class="text-center">백엔드 인프라 / API 분산 처리</td>
+                    <td>OO학 학사, 클라우드/서버리스 인프라 구축 경력(O년 이상)</td>
+                    <td class="text-center">예정(’26.06)</td>
+                </tr>
+                <tr>
+                    <td class="text-center">3</td>
+                    <td class="text-center">팀장</td>
+                    <td class="text-center">B2B 파트너십 및 고객 온보딩</td>
+                    <td>OO학 학사, 에이전시 B2B 마케팅/운영 경력(O년 이상)</td>
+                    <td class="text-center">예정(’26.07)</td>
+                </tr>
+            </tbody></table>
+
+            <h4>[ 협력 기관 현황 및 협업 방안 ]</h4>
+            <table>
+                <colgroup>
+                    <col style="width: 10%;">
+                    <col style="width: 20%;">
+                    <col style="width: 25%;">
+                    <col style="width: 30%;">
+                    <col style="width: 15%;">
+                </colgroup>
+                <tbody><tr>
+                    <th>구분</th>
+                    <th>파트너명</th>
+                    <th>보유 역량</th>
+                    <th>협업 방안</th>
+                    <th>협력 시기</th>
+                </tr>
+                <tr>
+                    <td class="text-center">1</td>
+                    <td class="text-center">OOO 대행사</td>
+                    <td class="text-center">B2B 마케팅 대행 및 숏폼 운영</td>
+                    <td>PoC(베타 테스트) 진행, 실무 피드백 제공 및 초기 유료 고객 전환</td>
+                    <td class="text-center">’26.11</td>
+                </tr>
+                <tr>
+                    <td class="text-center">2</td>
+                    <td class="text-center">OOO 커뮤니티</td>
+                    <td class="text-center">최신 오픈소스 AI 동향 파악</td>
+                    <td>생성형 AI 모델 기술 교류 및 우수 백엔드/AI 엔지니어 풀 리크루팅</td>
+                    <td class="text-center">상시</td>
+                </tr>
+            </tbody></table>
+
+        </body></html>
