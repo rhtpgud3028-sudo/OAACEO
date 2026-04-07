@@ -11,9 +11,11 @@ name: main → OAACEO-backup 자동 미러
 # ──────────────────────────────────────────────────────────────
 
 on:
-  push:
-    branches:
-      - main
+  # auto-merge-to-main.yml 완료 후 실행 (GITHUB_TOKEN push는 다른 워크플로우를 트리거 못하므로)
+  workflow_run:
+    workflows: ["Claude 브랜치 → main 자동 병합"]
+    types:
+      - completed
   schedule:
     # 매일 03:00 UTC (한국 시간 12:00) 정기 백업
     - cron: '0 3 * * *'
