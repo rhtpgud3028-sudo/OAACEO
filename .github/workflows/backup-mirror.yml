@@ -51,11 +51,12 @@ jobs:
           git config user.name "AIASF AutoBackup"
           git config user.email "autobackup@aiasf.bot"
 
-          # 백업 레포 remote 등록
-          git remote add backup \
-            "https://x-access-token:${BACKUP_TOKEN}@github.com/rhtpgud3028-sudo/OAACEO-backup.git"
+          # Fine-grained PAT / Classic PAT 모두 호환되는 credential store 방식
+          git config --global credential.helper store
+          echo "https://rhtpgud3028-sudo:${BACKUP_TOKEN}@github.com" > ~/.git-credentials
 
-          # main 브랜치를 백업 레포의 main으로 미러 푸시
+          # 백업 레포 remote 등록 및 미러 푸시
+          git remote add backup https://github.com/rhtpgud3028-sudo/OAACEO-backup.git
           git push backup main:main --force
           echo "✅ 백업 완료: rhtpgud3028-sudo/OAACEO-backup main 업데이트됨"
 
