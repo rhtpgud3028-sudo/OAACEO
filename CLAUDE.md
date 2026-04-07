@@ -246,13 +246,46 @@ Schedule Trigger (34분) → Channel Auto-Rotation (21채널 순환)
 
 ---
 
-## 섹션 5: 멀티기기 동기화
+## 섹션 5: 저장소 구조 및 멀티기기 동기화
+
+### 저장소 구조 (2026-04-07 단일 레포 통합 완료)
+
+| 레포 | 역할 | URL |
+|------|------|-----|
+| **rhtpgud3028-sudo/OAACEO** | 메인 (단일 소스 오브 트루스) | 모든 작업의 기준 |
+| **rhtpgud3028-sudo/OAACEO-backup** | 자동 백업 미러 (GitHub Actions) | main push 시 자동 동기화 |
+
+> ⚠️ **kohsehyung0328-bit/OAACEO**: 구 레포, 향후 이슈 발생 시만 참조
 
 ### 데이터 흐름
 ```
-Claude Code 웹 → /wrap push → GitHub Action 자동 병합 → main
-    → Windows 작업스케줄러 (30분) → Google Drive 폴더 pull
-        → Google Drive 자동 동기화 → 휴대용 노트북 수신
+Claude Code 웹 (rhtpgud3028-sudo/OAACEO)
+    ↓ /wrap → git push claude/* branch
+GitHub Actions (auto-merge-to-main.yml)
+    ↓ → main 브랜치 자동 병합
+GitHub Actions (backup-mirror.yml)
+    ↓ → rhtpgud3028-sudo/OAACEO-backup 자동 미러
+Windows 작업 스케줄러 (30분, auto_sync_github.ps1)
+    ↓ git pull origin main (rhtpgud3028-sudo/OAACEO)
+Google Drive 폴더 → 자동 동기화
+    ↓
+휴대용 노트북 수신
+```
+
+### 백업 미러 최초 설정 (1회)
+```
+1. GitHub에서 rhtpgud3028-sudo/OAACEO-backup 레포 수동 생성 (private)
+2. GitHub PAT 생성: Settings → Developer settings → Personal access tokens (Classic)
+   권한: repo (full control)
+3. OAACEO 레포 Secrets 등록: Settings → Secrets → Actions → New repository secret
+   이름: BACKUP_REPO_PAT / 값: 위 PAT
+→ 이후 main push 시 backup-mirror.yml이 자동 실행
+```
+
+### Windows 최초 클론 설정
+```powershell
+git clone https://github.com/rhtpgud3028-sudo/OAACEO.git "C:\경로\OAACEO"
+# 이후 auto_sync_github.ps1을 Windows 작업 스케줄러에 등록 (30분 간격)
 ```
 
 ### n8n API 활용 (SSH 없이 워크플로우 수정)
@@ -270,4 +303,4 @@ curl -X PUT -H "X-N8N-API-KEY: [API_KEY]" -H "Content-Type: application/json" \
 ```
 
 ### 상세 가이드
-`scratch/AIASF_멀티기기_동기화_셋업_가이드.md` 참조
+`scratch/AIASF_저장소_통합_완료_가이드.md` 참조 (2026-04-07 작성)

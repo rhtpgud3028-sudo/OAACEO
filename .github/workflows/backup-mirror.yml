@@ -1,0 +1,66 @@
+name: main → OAACEO-backup 자동 미러
+
+# ──────────────────────────────────────────────────────────────
+# 사전 준비 (최초 1회):
+#   1. GitHub에서 rhtpgud3028-sudo/OAACEO-backup 레포 수동 생성 (private)
+#   2. GitHub PAT 생성: Settings → Developer settings → Personal access tokens
+#      권한: repo (full control)
+#   3. 이 레포 Secrets에 등록: Settings → Secrets → Actions → New secret
+#      이름: BACKUP_REPO_PAT
+#      값: 위에서 생성한 PAT
+# ──────────────────────────────────────────────────────────────
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    # 매일 03:00 UTC (한국 시간 12:00) 정기 백업
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    # 수동 실행 가능
+
+jobs:
+  mirror-to-backup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: 레포 체크아웃 (전체 히스토리)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: BACKUP_REPO_PAT 존재 확인
+        run: |
+          if [ -z "${{ secrets.BACKUP_REPO_PAT }}" ]; then
+            echo "❌ BACKUP_REPO_PAT 시크릿이 없습니다!"
+            echo "   설정 방법: 레포 Settings → Secrets → Actions → BACKUP_REPO_PAT"
+            exit 1
+          fi
+          echo "✅ BACKUP_REPO_PAT 확인됨"
+
+      - name: 백업 레포로 미러 푸시
+        env:
+          BACKUP_TOKEN: ${{ secrets.BACKUP_REPO_PAT }}
+        run: |
+          git config user.name "AIASF AutoBackup"
+          git config user.email "autobackup@aiasf.bot"
+
+          # 백업 레포 remote 등록
+          git remote add backup \
+            "https://x-access-token:${BACKUP_TOKEN}@github.com/rhtpgud3028-sudo/OAACEO-backup.git"
+
+          # main 브랜치를 백업 레포의 main으로 미러 푸시
+          git push backup main:main --force
+          echo "✅ 백업 완료: rhtpgud3028-sudo/OAACEO-backup main 업데이트됨"
+
+      - name: 결과 요약
+        run: |
+          echo "=== 백업 미러 완료 ==="
+          echo "소스: rhtpgud3028-sudo/OAACEO (main)"
+          echo "대상: rhtpgud3028-sudo/OAACEO-backup (main)"
+          echo "시각: $(date '+%Y-%m-%d %H:%M:%S UTC')"
+          git log --oneline -3

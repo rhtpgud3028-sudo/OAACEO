@@ -6,6 +6,10 @@ if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
   exit 0
 fi
 
+# 메인 레포: rhtpgud3028-sudo/OAACEO (단일 레포 운영 - 2026-04-07 통합 완료)
+# 백업 레포: rhtpgud3028-sudo/OAACEO-backup (GitHub Actions 자동 미러)
+# 개발 브랜치: claude/* → auto-merge-to-main.yml로 main 자동 병합
+
 echo "Session start hook running..."
 cd "$CLAUDE_PROJECT_DIR"
 

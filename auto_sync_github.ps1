@@ -1,7 +1,10 @@
 # AIASF - GitHub 자동 동기화 스크립트
-# 위치: Google Drive의 OAACEO 프로젝트 폴더에 저장
+# 메인 레포: https://github.com/rhtpgud3028-sudo/OAACEO (단일 레포 - 2026-04-07 통합 완료)
+# 백업 레포: https://github.com/rhtpgud3028-sudo/OAACEO-backup (자동 미러, 직접 pull 불필요)
+# 위치: Google Drive의 OAACEO 프로젝트 폴더에 저장 (git clone rhtpgud3028-sudo/OAACEO)
 # 용도: Windows 작업 스케줄러로 자동 실행 → GitHub 최신 데이터 pull → Google Drive로 전파
 # 설정: 30분마다 실행 권장
+# 최초 설정: git clone https://github.com/rhtpgud3028-sudo/OAACEO.git "C:\경로\OAACEO"
 
 $LogFile = "$PSScriptRoot\sync_log.txt"
 $Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
