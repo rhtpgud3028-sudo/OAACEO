@@ -18,15 +18,13 @@ jobs:
         with:
           fetch-depth: 0 
           token: ${{ secrets.BACKUP_REPO_PAT }}
-          # lfs: true는 에러를 유발하므로 다시 제거합니다.
+          # 👇 알맹이가 채워졌으니 다시 당당하게 LFS 다운로드 옵션을 켭니다!
+          lfs: true 
 
       - name: Push to Backup Repository
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # 👇 핵심 해결책: 알맹이가 유실된 LFS 파일이 있더라도 무시하고 푸시를 강행하도록 설정
-          git config lfs.allowincompletepush true
           
           git remote add backup https://github.com/rhtpgud3028-sudo/OAACEO-backup.git
           git push backup main --force
