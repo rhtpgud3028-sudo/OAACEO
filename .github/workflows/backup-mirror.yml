@@ -1,39 +1,41 @@
 name: Backup Mirror to OAACEO-backup
 
 on:
-  # 1. auto-merge 워크플로우가 끝난 직후 실행되도록 설정
+  # 1. 대상 워크플로우의 '실제 name'으로 수정 완료!
   workflow_run:
-    workflows: ["auto-merge-to-main"] # 예: "Auto Merge"
+    workflows: ["Claude 브랜치 -> main 자동 병합"] 
     types:
       - completed
-  # 2. 지금 바로 테스트해볼 수 있도록 수동 실행 버튼 추가 (핵심)
+  # 2. 수동 검증용 트리거
   workflow_dispatch:
 
 jobs:
   mirror:
     runs-on: ubuntu-latest
-    # 워크플로우가 성공적으로 끝났을 때나 수동 실행일 때만 작동
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     
     steps:
       - name: Checkout source repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # 전체 히스토리를 가져와야 미러링 가능
+          fetch-depth: 0 
 
       - name: Push to Backup Repository
         env:
-          # 대상 백업 레포지토리 주소
-          TARGET_REPO: github.com/rhtpgud3028-sudo/OAACEO-backup.git
-          # 아까 등록한 시크릿 토큰
           PAT_TOKEN: ${{ secrets.BACKUP_REPO_PAT }}
         run: |
-          # 깃허브 액션 봇 설정
+          # [안전장치] 시크릿 토큰 정상 로드 여부 검사
+          if [ -z "$PAT_TOKEN" ]; then
+            echo "❌ 에러: BACKUP_REPO_PAT 시크릿이 비어있습니다. Settings > Secrets에 토큰이 제대로 저장되었는지 확인하세요."
+            exit 1
+          else
+            echo "✅ 토큰 로드 성공! 미러링 푸시를 시작합니다."
+          fi
+
+          # 깃허브 액션 봇 계정 설정
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 토큰이 포함된 URL로 새로운 remote 설정 및 푸시
-          git remote add backup https://${PAT_TOKEN}@${TARGET_REPO}
-          
-          # 대상 레포지토리의 main 브랜치로 강제 푸시 (미러링)
-          git push -u backup main --force
+          # 토큰을 URL에 직접 주입하여 가장 확실한 방식으로 미러링 진행
+          git remote add backup https://${PAT_TOKEN}@github.com/rhtpgud3028-sudo/OAACEO-backup.git
+          git push backup main --force
