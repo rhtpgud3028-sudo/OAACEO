@@ -3,7 +3,7 @@ name: Backup Mirror to OAACEO-backup
 on:
   # 1. auto-merge 워크플로우가 끝난 직후 실행되도록 설정
   workflow_run:
-    workflows: ["여기에 기존 auto-merge 워크플로우의 name을 적어주세요"] # 예: "Auto Merge"
+    workflows: ["auto-merge-to-main"] # 예: "Auto Merge"
     types:
       - completed
   # 2. 지금 바로 테스트해볼 수 있도록 수동 실행 버튼 추가 (핵심)
