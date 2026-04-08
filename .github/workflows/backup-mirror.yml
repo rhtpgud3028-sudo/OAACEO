@@ -1,69 +1,39 @@
-name: main → OAACEO-backup 자동 미러
-
-# ──────────────────────────────────────────────────────────────
-# 사전 준비 (최초 1회):
-#   1. GitHub에서 rhtpgud3028-sudo/OAACEO-backup 레포 수동 생성 (private)
-#   2. GitHub PAT 생성: Settings → Developer settings → Personal access tokens
-#      권한: repo (full control)
-#   3. 이 레포 Secrets에 등록: Settings → Secrets → Actions → New secret
-#      이름: BACKUP_REPO_PAT
-#      값: 위에서 생성한 PAT
-# ──────────────────────────────────────────────────────────────
+name: Backup Mirror to OAACEO-backup
 
 on:
-  # auto-merge-to-main.yml 완료 후 실행 (GITHUB_TOKEN push는 다른 워크플로우를 트리거 못하므로)
+  # 1. auto-merge 워크플로우가 끝난 직후 실행되도록 설정
   workflow_run:
-    workflows: ["Claude 브랜치 → main 자동 병합"]
+    workflows: ["여기에 기존 auto-merge 워크플로우의 name을 적어주세요"] # 예: "Auto Merge"
     types:
       - completed
-  schedule:
-    # 매일 03:00 UTC (한국 시간 12:00) 정기 백업
-    - cron: '0 3 * * *'
+  # 2. 지금 바로 테스트해볼 수 있도록 수동 실행 버튼 추가 (핵심)
   workflow_dispatch:
-    # 수동 실행 가능
 
 jobs:
-  mirror-to-backup:
+  mirror:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-
+    # 워크플로우가 성공적으로 끝났을 때나 수동 실행일 때만 작동
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    
     steps:
-      - name: 레포 체크아웃 (전체 히스토리)
+      - name: Checkout source repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0 # 전체 히스토리를 가져와야 미러링 가능
 
-      - name: BACKUP_REPO_PAT 존재 확인
-        run: |
-          if [ -z "${{ secrets.BACKUP_REPO_PAT }}" ]; then
-            echo "❌ BACKUP_REPO_PAT 시크릿이 없습니다!"
-            echo "   설정 방법: 레포 Settings → Secrets → Actions → BACKUP_REPO_PAT"
-            exit 1
-          fi
-          echo "✅ BACKUP_REPO_PAT 확인됨"
-
-      - name: 백업 레포로 미러 푸시
+      - name: Push to Backup Repository
         env:
-          BACKUP_TOKEN: ${{ secrets.BACKUP_REPO_PAT }}
+          # 대상 백업 레포지토리 주소
+          TARGET_REPO: github.com/rhtpgud3028-sudo/OAACEO-backup.git
+          # 아까 등록한 시크릿 토큰
+          PAT_TOKEN: ${{ secrets.BACKUP_REPO_PAT }}
         run: |
-          git config user.name "AIASF AutoBackup"
-          git config user.email "autobackup@aiasf.bot"
-
-          # Fine-grained PAT / Classic PAT 모두 호환되는 credential store 방식
-          git config --global credential.helper store
-          echo "https://rhtpgud3028-sudo:${BACKUP_TOKEN}@github.com" > ~/.git-credentials
-
-          # 백업 레포 remote 등록 및 미러 푸시
-          git remote add backup https://github.com/rhtpgud3028-sudo/OAACEO-backup.git
-          git push backup main:main --force
-          echo "✅ 백업 완료: rhtpgud3028-sudo/OAACEO-backup main 업데이트됨"
-
-      - name: 결과 요약
-        run: |
-          echo "=== 백업 미러 완료 ==="
-          echo "소스: rhtpgud3028-sudo/OAACEO (main)"
-          echo "대상: rhtpgud3028-sudo/OAACEO-backup (main)"
-          echo "시각: $(date '+%Y-%m-%d %H:%M:%S UTC')"
-          git log --oneline -3
+          # 깃허브 액션 봇 설정
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # 토큰이 포함된 URL로 새로운 remote 설정 및 푸시
+          git remote add backup https://${PAT_TOKEN}@${TARGET_REPO}
+          
+          # 대상 레포지토리의 main 브랜치로 강제 푸시 (미러링)
+          git push -u backup main --force
