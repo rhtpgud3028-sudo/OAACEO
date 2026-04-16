@@ -51,13 +51,20 @@ jobs:
           git config user.name "AIASF AutoBackup"
           git config user.email "autobackup@aiasf.bot"
 
-          # Fine-grained PAT / Classic PAT 모두 호환되는 credential store 방식
-          git config --global credential.helper store
-          echo "https://rhtpgud3028-sudo:${BACKUP_TOKEN}@github.com" > ~/.git-credentials
+          # 디버깅: 토큰 길이 확인 (값 노출 안 함)
+          echo "토큰 길이: ${#BACKUP_TOKEN}"
+          echo "토큰 앞 10자: ${BACKUP_TOKEN:0:10}..."
 
-          # 백업 레포 remote 등록 및 미러 푸시
-          git remote add backup https://github.com/rhtpgud3028-sudo/OAACEO-backup.git
-          git push backup main:main --force
+          # URL에 직접 토큰 삽입 방식 (가장 호환성 높음)
+          BACKUP_URL="https://rhtpgud3028-sudo:${BACKUP_TOKEN}@github.com/rhtpgud3028-sudo/OAACEO-backup.git"
+          git remote add backup "$BACKUP_URL"
+
+          # 현재 브랜치 확인
+          echo "현재 브랜치: $(git branch --show-current)"
+          echo "사용 가능한 브랜치:"
+          git branch -a
+
+          git push backup HEAD:main --force
           echo "✅ 백업 완료: rhtpgud3028-sudo/OAACEO-backup main 업데이트됨"
 
       - name: 결과 요약
